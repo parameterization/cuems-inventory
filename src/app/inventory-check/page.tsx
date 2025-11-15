@@ -218,8 +218,8 @@ export default function InventoryCheckPage() {
                               </label>
                               <Input
                                 type="number"
-                                step="0.25"
-                                value={Number(editedItems[item.id]?.quantity ?? item.quantity).toFixed(2)}
+                                step="any"
+                                value={Number(editedItems[item.id]?.quantity ?? item.quantity)}
                                 onChange={(e) => {
                                   const val = parseFloat(e.target.value);
                                   handleFieldChange(item.id, 'quantity', isNaN(val) ? 0 : Math.round(val * 100) / 100);
@@ -235,8 +235,8 @@ export default function InventoryCheckPage() {
                               </label>
                               <Input
                                 type="number"
-                                step="0.25"
-                                value={Number(editedItems[item.id]?.minimalBalance ?? item.minimalBalance).toFixed(2)}
+                                step="any"
+                                value={Number(editedItems[item.id]?.minimalBalance ?? item.minimalBalance)}
                                 onChange={(e) => {
                                   const val = parseFloat(e.target.value);
                                   handleFieldChange(item.id, 'minimalBalance', isNaN(val) ? 0 : Math.round(val * 100) / 100);
