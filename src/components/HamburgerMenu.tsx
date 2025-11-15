@@ -48,35 +48,26 @@ export function HamburgerMenu({ userRole }: HamburgerMenuProps) {
             <Link
               href="/take-remove"
               onClick={closeMenu}
-              className="block px-5 py-4 text-lg font-semibold text-columbia-navy hover:bg-blue-100 transition-all border-l-4 border-transparent hover:border-columbia-navy"
+              className="block px-6 py-4 text-base font-bold text-columbia-navy hover:bg-blue-100 transition-all border-l-4 border-transparent hover:border-columbia-navy uppercase tracking-wide"
             >
-              <span className="flex items-center gap-3">
-                <span className="text-2xl">📦</span>
-                Take & Return
-              </span>
+              Take & Return
             </Link>
 
             <Link
               href="/inventory-levels"
               onClick={closeMenu}
-              className="block px-5 py-4 text-lg font-semibold text-columbia-navy hover:bg-blue-100 transition-all border-l-4 border-transparent hover:border-columbia-navy"
+              className="block px-6 py-4 text-base font-bold text-columbia-navy hover:bg-blue-100 transition-all border-l-4 border-transparent hover:border-columbia-navy uppercase tracking-wide"
             >
-              <span className="flex items-center gap-3">
-                <span className="text-2xl">📊</span>
-                Inventory Levels
-              </span>
+              Inventory Levels
             </Link>
 
             {canDoInventoryCheck(userRole) && (
               <Link
                 href="/inventory-check"
                 onClick={closeMenu}
-                className="block px-5 py-4 text-lg font-semibold text-columbia-navy hover:bg-blue-100 transition-all border-l-4 border-transparent hover:border-columbia-navy"
+                className="block px-6 py-4 text-base font-bold text-columbia-navy hover:bg-blue-100 transition-all border-l-4 border-transparent hover:border-columbia-navy uppercase tracking-wide"
               >
-                <span className="flex items-center gap-3">
-                  <span className="text-2xl">✅</span>
-                  Inventory Check
-                </span>
+                Inventory Check
               </Link>
             )}
 
@@ -84,12 +75,9 @@ export function HamburgerMenu({ userRole }: HamburgerMenuProps) {
               <Link
                 href="/audit-logs"
                 onClick={closeMenu}
-                className="block px-5 py-4 text-lg font-semibold text-columbia-navy hover:bg-blue-100 transition-all border-l-4 border-transparent hover:border-columbia-navy"
+                className="block px-6 py-4 text-base font-bold text-columbia-navy hover:bg-blue-100 transition-all border-l-4 border-transparent hover:border-columbia-navy uppercase tracking-wide"
               >
-                <span className="flex items-center gap-3">
-                  <span className="text-2xl">📋</span>
-                  Audit Logs
-                </span>
+                Audit Logs
               </Link>
             )}
 
@@ -97,36 +85,29 @@ export function HamburgerMenu({ userRole }: HamburgerMenuProps) {
               <Link
                 href="/admin"
                 onClick={closeMenu}
-                className="block px-5 py-4 text-lg font-semibold text-columbia-navy hover:bg-blue-100 transition-all border-l-4 border-transparent hover:border-columbia-navy"
+                className="block px-6 py-4 text-base font-bold text-columbia-navy hover:bg-blue-100 transition-all border-l-4 border-transparent hover:border-columbia-navy uppercase tracking-wide"
               >
-                <span className="flex items-center gap-3">
-                  <span className="text-2xl">⚙️</span>
-                  Admin Panel
-                </span>
+                Admin Panel
               </Link>
             )}
           </nav>
 
-          <div className="px-6 space-y-2">
-            <Link
-              href="/change-password"
-              onClick={closeMenu}
-              className="block px-5 py-3 text-base font-semibold text-columbia-navy hover:bg-blue-100 transition-all border border-gray-300"
-            >
-              <span className="flex items-center justify-center gap-2">
-                <span className="text-lg">🔑</span>
+          <div className="px-6 space-y-3 mt-4">
+            <div className="border-t-2 border-gray-200 pt-4">
+              <Link
+                href="/change-password"
+                onClick={closeMenu}
+                className="block px-6 py-3 text-sm font-bold text-gray-700 hover:bg-gray-100 transition-all border-2 border-gray-300 hover:border-gray-400 uppercase tracking-wide text-center"
+              >
                 Change Password
-              </span>
-            </Link>
+              </Link>
+            </div>
             
             <button
               onClick={handleLogout}
-              className="w-full px-5 py-4 text-lg font-semibold text-white bg-red-600 hover:bg-red-700 transition-all shadow-md hover:shadow-lg"
+              className="w-full px-6 py-4 text-base font-bold text-white bg-red-600 hover:bg-red-700 transition-all shadow-lg uppercase tracking-wide"
             >
-              <span className="flex items-center justify-center gap-2">
-                <span className="text-xl">🚪</span>
-                Logout
-              </span>
+              Logout
             </button>
           </div>
         </div>
