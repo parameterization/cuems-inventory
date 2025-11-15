@@ -248,9 +248,9 @@ export default function TakeRemovePage() {
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
-                              <Button
-                                onClick={() => handleTake(item.id)}
-                                disabled={item.quantity === 0}
+                                  <Button
+                                    onClick={() => handleTake(item.id)}
+                                    disabled={Number(item.quantity) === 0}
                                 size="lg"
                                 className="w-full bg-red-600 hover:bg-red-700 text-white shadow-lg"
                               >

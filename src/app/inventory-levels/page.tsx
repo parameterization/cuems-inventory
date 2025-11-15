@@ -77,8 +77,8 @@ export default function InventoryLevelsPage() {
     return acc;
   }, {} as Record<string, Record<string, InventoryItem[]>>);
 
-  const lowStockCount = items.filter(i => i.quantity < i.minimalBalance && i.quantity > 0).length;
-  const outOfStockCount = items.filter(i => i.quantity === 0).length;
+  const lowStockCount = items.filter(i => Number(i.quantity) < Number(i.minimalBalance) && Number(i.quantity) > 0).length;
+  const outOfStockCount = items.filter(i => Number(i.quantity) === 0).length;
 
   if (isLoading) {
     return (
