@@ -11,9 +11,6 @@ const spaceGrotesk = Space_Grotesk({
 export const metadata: Metadata = {
   title: 'CUEMS Inventory',
   description: 'CUEMS Inventory Management System',
-  icons: {
-    icon: '/cuems-logo.png',
-  },
 };
 
 export default function RootLayout({
