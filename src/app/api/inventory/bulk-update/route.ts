@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { canDoInventoryCheck } from '@/lib/permissions';
+import { pusherServer } from '@/lib/pusher';
 
 export async function POST(req: NextRequest) {
   try {
@@ -71,6 +72,13 @@ export async function POST(req: NextRequest) {
         });
       })
     );
+
+    // Broadcast all updated items via Pusher for real-time updates
+    if (process.env.PUSHER_APP_ID) {
+      for (const updatedItem of results) {
+        await pusherServer.trigger('inventory', 'item-updated', updatedItem);
+      }
+    }
 
     return NextResponse.json(results);
   } catch (error) {
