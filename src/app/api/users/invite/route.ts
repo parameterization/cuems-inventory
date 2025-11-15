@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { sendInviteEmail } from '@/lib/email';
 import * as bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 export async function POST(req: NextRequest) {
   try {
@@ -36,12 +37,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'User already exists' }, { status: 400 });
     }
 
-    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+    // Create user with random temporary password
+    const tempPasswordHash = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
 
     const newUser = await prisma.user.create({
       data: {
         email,
-        passwordHash: hashedPassword,
+        passwordHash: tempPasswordHash,
         role,
         isSupremeAdmin: false,
         needsPasswordChange: true,
@@ -55,15 +57,30 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Send invite email
+    // Generate password setup token
+    const setupToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+    await prisma.passwordResetToken.create({
+      data: {
+        userId: newUser.id,
+        token: setupToken,
+        expiresAt,
+      },
+    });
+
+    // Send invite email with setup link
     try {
-      await sendInviteEmail(email, tempPassword, session.user.email);
+      await sendInviteEmail(email, setupToken, session.user.email);
     } catch (emailError) {
       console.error('Failed to send invite email:', emailError);
-      // Continue even if email fails - admin can manually share credentials
+      // Continue even if email fails
     }
 
-    return NextResponse.json(newUser, { status: 201 });
+    return NextResponse.json({ 
+      ...newUser, 
+      setupToken // Return token so admin can manually share if email fails
+    }, { status: 201 });
   } catch (error) {
     console.error('Error inviting user:', error);
     return NextResponse.json(

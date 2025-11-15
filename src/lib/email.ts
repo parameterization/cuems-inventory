@@ -4,10 +4,10 @@ const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KE
 
 export async function sendInviteEmail(
   email: string,
-  tempPassword: string,
+  setupToken: string,
   invitedBy: string
 ) {
-  const resetUrl = `${process.env.NEXTAUTH_URL}/set-password?email=${encodeURIComponent(email)}`;
+  const setupUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${setupToken}`;
 
   if (!resend) {
     console.warn('Resend not configured - email not sent');
@@ -18,22 +18,27 @@ export async function sendInviteEmail(
     await resend.emails.send({
       from: 'CUEMS Inventory <noreply@cuemsinventory.com>',
       to: email,
-      subject: 'Welcome to CUEMS Inventory',
+      subject: 'Welcome to CUEMS Inventory - Set Your Password',
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
           <h1 style="color: #003C71;">Welcome to CUEMS Inventory</h1>
-          <p>You've been invited to CUEMS Inventory by ${invitedBy}.</p>
+          <p>You've been invited to CUEMS Inventory by <strong>${invitedBy}</strong>.</p>
           
-          <div style="background: #f0f0f0; padding: 20px; margin: 20px 0; border-left: 4px solid #003C71;">
-            <p style="margin: 0;"><strong>Email:</strong> ${email}</p>
-            <p style="margin: 10px 0 0 0;"><strong>Temporary Password:</strong> ${tempPassword}</p>
-          </div>
+          <p>Click the button below to set your password and activate your account:</p>
           
-          <p>Please set your own password after logging in for the first time:</p>
-          <a href="${process.env.NEXTAUTH_URL}/login" 
-             style="display: inline-block; background: #003C71; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 10px 0;">
-            Login Now
+          <a href="${setupUrl}" 
+             style="display: inline-block; background: #003C71; color: white; padding: 14px 28px; text-decoration: none; margin: 20px 0; font-weight: bold; font-size: 16px;">
+            Set Your Password
           </a>
+          
+          <p style="color: #666; font-size: 14px;">
+            Your email: <strong>${email}</strong><br>
+            This link expires in 7 days.
+          </p>
+          
+          <p style="color: #999; font-size: 12px; margin-top: 30px;">
+            Or copy this link: ${setupUrl}
+          </p>
           
           <p style="color: #666; font-size: 14px; margin-top: 30px;">
             This is an internal CUEMS tool. If you received this email in error, please ignore it.
