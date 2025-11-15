@@ -27,8 +27,8 @@ export async function GET(req: NextRequest) {
       orderBy: { cabinet: 'asc' },
     });
 
-    const lowStockItems = allItems.filter(item => item.quantity < item.minimalBalance);
-    const outOfStockItems = allItems.filter(item => item.quantity === 0);
+    const lowStockItems = allItems.filter(item => Number(item.quantity) < Number(item.minimalBalance));
+    const outOfStockItems = allItems.filter(item => Number(item.quantity) === 0);
 
     // Get activity from past week
     const oneWeekAgo = new Date();
