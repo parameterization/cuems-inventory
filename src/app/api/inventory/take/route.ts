@@ -26,14 +26,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Item not found' }, { status: 404 });
     }
 
-    if (item.quantity <= 0) {
+    if (Number(item.quantity) <= 0) {
       return NextResponse.json({ error: 'Item out of stock' }, { status: 400 });
     }
 
     const result = await prisma.$transaction(async (tx) => {
+      const newQuantity = Number(item.quantity) - 1;
+      
       const updatedItem = await tx.inventoryItem.update({
         where: { id: itemId },
-        data: { quantity: item.quantity - 1 },
+        data: { quantity: newQuantity },
       });
 
       await tx.auditLog.create({
@@ -42,7 +44,7 @@ export async function POST(req: NextRequest) {
           itemId: itemId,
           action: 'TAKE',
           before: item.quantity,
-          after: item.quantity - 1,
+          after: newQuantity,
         },
       });
 

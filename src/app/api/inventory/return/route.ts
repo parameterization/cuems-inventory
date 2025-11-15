@@ -27,9 +27,11 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await prisma.$transaction(async (tx) => {
+      const newQuantity = Number(item.quantity) + 1;
+      
       const updatedItem = await tx.inventoryItem.update({
         where: { id: itemId },
-        data: { quantity: item.quantity + 1 },
+        data: { quantity: newQuantity },
       });
 
       await tx.auditLog.create({
@@ -38,7 +40,7 @@ export async function POST(req: NextRequest) {
           itemId: itemId,
           action: 'RETURN',
           before: item.quantity,
-          after: item.quantity + 1,
+          after: newQuantity,
         },
       });
 
