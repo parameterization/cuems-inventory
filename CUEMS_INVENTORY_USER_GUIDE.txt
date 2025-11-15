@@ -1,0 +1,308 @@
+═══════════════════════════════════════════════════════════════════
+          CUEMS INVENTORY SYSTEM - USER GUIDE
+═══════════════════════════════════════════════════════════════════
+
+Website: https://cuemsinventory.com
+
+═══════════════════════════════════════════════════════════════════
+GETTING STARTED
+═══════════════════════════════════════════════════════════════════
+
+1. LOGGING IN
+   - Go to: cuemsinventory.com
+   - Enter your Columbia email (@columbia.edu)
+   - Enter your password
+   - Click "Sign In"
+
+2. FIRST TIME LOGIN
+   - You'll receive an email from noreply@cuemsinventory.com
+   - Click "Set Your Password" in the email
+   - Create your own secure password
+   - Login with your email and new password
+
+3. FORGOT PASSWORD
+   - Click "Forgot password?" on login page
+   - Enter your email
+   - Check your inbox for reset link
+   - Click link and set new password
+
+═══════════════════════════════════════════════════════════════════
+USER ROLES
+═══════════════════════════════════════════════════════════════════
+
+DRIVER
+  ✓ Take items (decrease quantity)
+  ✓ Return items (increase quantity)
+  ✓ View inventory levels
+  ✗ Cannot do inventory checks
+  ✗ Cannot access admin features
+
+PROBIE
+  ✓ Everything Drivers can do
+  ✓ Perform inventory checks (update all quantities)
+  ✗ Cannot manage users or add/remove items
+
+ADMIN
+  ✓ Everything Probies can do
+  ✓ Invite new users
+  ✓ Change user roles
+  ✓ Add/remove inventory items
+  ✓ View audit logs
+  ✓ Export data to CSV
+
+═══════════════════════════════════════════════════════════════════
+MAIN FEATURES
+═══════════════════════════════════════════════════════════════════
+
+📦 TAKE & RETURN (Default Page)
+   Purpose: Quick inventory management during shifts
+   
+   How to Use:
+   - Search for items using the search bar
+   - Filter by cabinet (Left, Middle, Right, Floor, Armory)
+   - Click RED "TAKE" button to remove 1 from inventory
+   - Click BLUE "RETURN" button to add 1 back to inventory
+   - Changes happen instantly - no confirmation needed
+   - Color codes:
+     • GREEN = Adequately stocked
+     • YELLOW = Below minimal balance (reorder soon)
+     • RED = Out of stock
+
+   Tips:
+   - One tap per action - super fast
+   - Works great on phones
+   - Updates in real-time across all devices
+
+───────────────────────────────────────────────────────────────────
+
+📊 INVENTORY LEVELS (Everyone)
+   Purpose: Read-only view of all stock levels
+   
+   What You See:
+   - Summary stats (Total Items, Low Stock, Out of Stock)
+   - Full list of all items organized by cabinet and shelf
+   - Current quantity vs. minimal balance
+   - Item details (Item #, Vendor, Notes)
+
+   When to Use:
+   - Check stock before ordering supplies
+   - Quick reference for what we have
+   - See what needs to be restocked
+
+───────────────────────────────────────────────────────────────────
+
+✅ INVENTORY CHECK (Probies & Admins Only)
+   Purpose: Update quantities after physical count
+   
+   How to Use:
+   1. Physically count all items in your assigned area
+   2. Open Inventory Check page
+   3. Filter by cabinet if needed
+   4. Type in the actual counted quantity for each item
+   5. Admins can also edit: Min Balance, Vendor, Expiry dates, Notes
+   6. Click "SUBMIT ALL CHANGES" when done
+   
+   Important:
+   - All changes are grouped as ONE inventory check in audit logs
+   - Can reset if you make mistakes before submitting
+   - Shows "You have unsaved changes" warning
+   - Changed items are highlighted in audit logs
+
+───────────────────────────────────────────────────────────────────
+
+📋 AUDIT LOGS (Admins Only)
+   Purpose: Track who took what and when (for Columbia Health compliance)
+   
+   What You See:
+   - All TAKE actions (who took items, when, quantity change)
+   - All RETURN actions (who returned items)
+   - Inventory Check sessions (collapsible folders)
+   
+   Features:
+   - Search by item name or user email
+   - Filter by action type (TAKE, RETURN, SET)
+   - Export to CSV with date range:
+     • Click "Export CSV"
+     • Choose: All Time, Today, Last 7/30/90 Days, or Custom Range
+     • Download for Columbia Health audits
+   
+   Inventory Check Details:
+   - Click folder icon to expand
+   - Changed items highlighted in yellow
+   - See before/after for every item
+
+───────────────────────────────────────────────────────────────────
+
+⚙️ ADMIN PANEL (Admins Only)
+   Purpose: Manage users and inventory items
+   
+   USER MANAGEMENT
+   - Invite new users:
+     • Enter their Columbia email
+     • Select role (Driver/Probie/Admin)
+     • They receive email to set password
+   
+   - Change user roles:
+     • Use dropdown to change Driver → Probie → Admin
+     • Changes take effect immediately
+   
+   - Delete users:
+     • Click trash icon
+     • Confirm deletion
+     • Note: Cannot delete Supreme Admin (👑)
+   
+   INVENTORY MANAGEMENT
+   - Add new items:
+     • Fill in: Name, Cabinet, Shelf, Unit
+     • Set initial quantity and minimal balance
+     • Optional: Item #, Vendor, Notes/Expiry
+     • Click "Add Item to Inventory"
+   
+   - Delete items:
+     • Scroll to "Existing Items" section
+     • Click trash icon next to item
+     • Confirm deletion
+     • Warning: Also deletes audit history for that item
+
+───────────────────────────────────────────────────────────────────
+
+🔑 CHANGE PASSWORD
+   - Open menu (top-left hamburger icon)
+   - Click "Change Password"
+   - Enter current password
+   - Enter new password twice
+   - Click "Change Password"
+
+═══════════════════════════════════════════════════════════════════
+TIPS & BEST PRACTICES
+═══════════════════════════════════════════════════════════════════
+
+FOR ON-SHIFT USE:
+✓ Bookmark cuemsinventory.com on your phone
+✓ Use Take & Return page - it's the fastest
+✓ Don't worry about mistakes - everything is logged
+✓ Changes sync in real-time - multiple people can use it at once
+
+FOR PROBIES (Inventory Checks):
+✓ Do physical counts carefully
+✓ Double-check numbers before submitting
+✓ Use cabinet filter to focus on one area at a time
+✓ If you mess up, click Reset and start over
+✓ All your changes are grouped as one check in audit logs
+
+FOR ADMINS:
+✓ Check audit logs weekly for unusual activity
+✓ Review low stock items on Inventory Levels page
+✓ Export audit logs monthly for Columbia Health records
+✓ Invite new members as they join CUEMS
+✓ You'll receive automated email every Sunday at 8 AM with:
+  - Low stock alerts
+  - Out of stock items
+  - Weekly activity summary
+
+═══════════════════════════════════════════════════════════════════
+TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════════
+
+"I forgot my password"
+  → Click "Forgot password?" on login page
+  → Enter your email
+  → Check inbox for reset link
+
+"I didn't receive invite email"
+  → Check spam folder
+  → Email comes from: noreply@cuemsinventory.com
+  → Contact an admin if still not there
+
+"Changes aren't saving"
+  → Check your internet connection
+  → Make sure you're clicking the submit/save button
+  → Try refreshing the page
+
+"I can't access Inventory Check/Admin Panel"
+  → Check your role with an admin
+  → Drivers can't access these features
+  → You may need a role upgrade
+
+"Real-time updates not working"
+  → Refresh your browser
+  → Check you're on latest version (hard refresh: Cmd+Shift+R)
+  → Changes still save even if real-time isn't syncing
+
+═══════════════════════════════════════════════════════════════════
+MOBILE USE
+═══════════════════════════════════════════════════════════════════
+
+The system is optimized for phone use on shift:
+
+✓ Large buttons - easy to tap
+✓ One-handed operation
+✓ Works on any device
+✓ Fast loading
+✓ No unnecessary confirmations
+
+Recommended: Add to Home Screen
+  iPhone: Safari → Share → Add to Home Screen
+  Android: Chrome → Menu → Add to Home Screen
+
+═══════════════════════════════════════════════════════════════════
+SECURITY & PRIVACY
+═══════════════════════════════════════════════════════════════════
+
+- Only accessible with @columbia.edu emails
+- All actions are logged with your email and timestamp
+- Password reset links expire after 1 hour
+- Invite links expire after 7 days
+- Use strong passwords (minimum 8 characters)
+- Don't share your login credentials
+
+═══════════════════════════════════════════════════════════════════
+AUTOMATED FEATURES
+═══════════════════════════════════════════════════════════════════
+
+WEEKLY EMAIL SUMMARY (Sundays @ 8 AM)
+  All admins receive:
+  - Out of stock items list
+  - Low stock warnings
+  - Weekly activity stats
+  - Inventory check count
+
+═══════════════════════════════════════════════════════════════════
+SUPPORT & QUESTIONS
+═══════════════════════════════════════════════════════════════════
+
+For Issues:
+1. Try basic troubleshooting above
+2. Contact any admin for help
+3. For technical issues, contact: ps3487@columbia.edu
+
+For Feature Requests:
+- Suggest improvements to CUEMS leadership
+- System is designed to evolve with CUEMS needs
+
+═══════════════════════════════════════════════════════════════════
+QUICK REFERENCE
+═══════════════════════════════════════════════════════════════════
+
+Website:     cuemsinventory.com
+Login:       Your Columbia email + password
+Forgot PW:   Click link on login page
+Support:     ps3487@columbia.edu
+
+Common Tasks:
+  Take item on shift     → Take & Return page → TAKE button
+  Return item            → Take & Return page → RETURN button
+  Check stock levels     → Inventory Levels page
+  Do inventory check     → Inventory Check page (Probie/Admin)
+  View who took what     → Audit Logs page (Admin)
+  Invite new user        → Admin Panel (Admin)
+
+═══════════════════════════════════════════════════════════════════
+
+Questions? Contact an admin or ps3487@columbia.edu
+
+Built for CUEMS by CUEMS
+Last Updated: November 2024
+
+═══════════════════════════════════════════════════════════════════
+
