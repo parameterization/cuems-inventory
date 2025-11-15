@@ -36,6 +36,9 @@ export default function AuditLogsPage() {
   const [expandedBatches, setExpandedBatches] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
   const [actionFilter, setActionFilter] = useState('ALL');
+  const [dateRange, setDateRange] = useState('ALL');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -110,9 +113,48 @@ export default function AuditLogsPage() {
     }
   };
 
+  const getFilteredLogsForExport = () => {
+    let logsToExport = filteredLogs;
+
+    if (dateRange === 'CUSTOM' && startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999); // Include entire end date
+      
+      logsToExport = logsToExport.filter(log => {
+        const logDate = new Date(log.timestamp);
+        return logDate >= start && logDate <= end;
+      });
+    } else if (dateRange !== 'ALL') {
+      const now = new Date();
+      const rangeStart = new Date();
+      
+      switch (dateRange) {
+        case 'TODAY':
+          rangeStart.setHours(0, 0, 0, 0);
+          break;
+        case 'WEEK':
+          rangeStart.setDate(now.getDate() - 7);
+          break;
+        case 'MONTH':
+          rangeStart.setMonth(now.getMonth() - 1);
+          break;
+        case '3MONTHS':
+          rangeStart.setMonth(now.getMonth() - 3);
+          break;
+      }
+      
+      logsToExport = logsToExport.filter(log => new Date(log.timestamp) >= rangeStart);
+    }
+
+    return logsToExport;
+  };
+
   const exportToCSV = () => {
+    const logsToExport = getFilteredLogsForExport();
+    
     const headers = ['Date/Time', 'User', 'Action', 'Item', 'Before', 'After', 'Change'];
-    const rows = filteredLogs.map(log => [
+    const rows = logsToExport.map(log => [
       new Date(log.timestamp).toLocaleString(),
       log.user.email,
       log.action,
@@ -131,7 +173,8 @@ export default function AuditLogsPage() {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `cuems-audit-log-${new Date().toISOString().split('T')[0]}.csv`;
+    const dateLabel = dateRange === 'ALL' ? 'all' : dateRange === 'CUSTOM' ? `${startDate}-to-${endDate}` : dateRange.toLowerCase();
+    a.download = `cuems-audit-log-${dateLabel}-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
   };
@@ -177,6 +220,47 @@ export default function AuditLogsPage() {
               <Download className="mr-2" size={20} />
               <span className="font-bold uppercase">Export CSV</span>
             </Button>
+          </div>
+
+          {/* Date Range Export Options */}
+          <div className="glass-effect p-4">
+            <div className="flex items-center gap-4 flex-wrap">
+              <label className="text-sm font-bold text-gray-700 uppercase tracking-wide">
+                Export Date Range:
+              </label>
+              <select
+                value={dateRange}
+                onChange={(e) => setDateRange(e.target.value)}
+                className="px-4 py-2 border-2 border-gray-300 font-semibold text-sm uppercase tracking-wide"
+              >
+                <option value="ALL">All Time</option>
+                <option value="TODAY">Today Only</option>
+                <option value="WEEK">Last 7 Days</option>
+                <option value="MONTH">Last 30 Days</option>
+                <option value="3MONTHS">Last 3 Months</option>
+                <option value="CUSTOM">Custom Range</option>
+              </select>
+
+              {dateRange === 'CUSTOM' && (
+                <>
+                  <Input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-40 h-10 border-2"
+                    placeholder="Start date"
+                  />
+                  <span className="text-gray-500 font-bold">to</span>
+                  <Input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-40 h-10 border-2"
+                    placeholder="End date"
+                  />
+                </>
+              )}
+            </div>
           </div>
 
           {/* Action Filter Buttons */}
