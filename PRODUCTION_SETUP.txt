@@ -1,0 +1,112 @@
+═══════════════════════════════════════════════════════
+CUEMS INVENTORY - PRODUCTION DEPLOYMENT GUIDE
+═══════════════════════════════════════════════════════
+
+PHASE 1: PREPARATION (Complete ✓)
+- PostgreSQL schema ready
+- User invite system added
+- All features working locally
+
+PHASE 2: DEPLOY TO VERCEL (30 minutes)
+───────────────────────────────────────────────────────
+
+Step 1: Create Vercel Account
+→ Go to: https://vercel.com/signup
+→ Sign up with GitHub (easiest)
+
+Step 2: Import Project
+→ Go to: https://vercel.com/new
+→ Import from: github.com/parameterization/cuems-inventory
+→ Framework: Next.js (auto-detected)
+→ Click "Deploy"
+
+Step 3: Set Up PostgreSQL Database
+→ In Vercel dashboard, go to Storage tab
+→ Create → Postgres
+→ Name: cuems-inventory-db
+→ Copy the DATABASE_URL (starts with postgres://)
+
+Step 4: Add Environment Variables in Vercel
+→ Go to: Project Settings → Environment Variables
+→ Add these:
+
+DATABASE_URL = [paste from Vercel Postgres]
+NEXTAUTH_SECRET = [run: openssl rand -base64 32]
+NEXTAUTH_URL = https://your-project.vercel.app
+SUPREME_ADMIN_EMAIL = ps3487@columbia.edu
+
+Step 5: Redeploy
+→ Vercel will auto-redeploy with new env vars
+→ Wait 2-3 minutes
+
+Step 6: Run Database Migration
+→ In Vercel dashboard, go to Deployments
+→ Click latest deployment → View Function Logs
+→ Or run locally: npx prisma migrate deploy
+→ Then seed: npx prisma db seed
+
+PHASE 3: CUSTOM DOMAIN (10 minutes)
+───────────────────────────────────────────────────────
+
+Step 1: Buy Domain
+→ Go to: namecheap.com or domains.google.com
+→ Buy: cuemsinventory.com (~$12/year)
+
+Step 2: Connect to Vercel
+→ Vercel dashboard → Domains
+→ Add: cuemsinventory.com
+→ Follow DNS instructions
+→ Add A record and CNAME as Vercel shows
+→ Wait 10-30 min for DNS propagation
+
+Step 3: Update Environment
+→ Change NEXTAUTH_URL to: https://cuemsinventory.com
+→ Redeploy
+
+PHASE 4: PRODUCTION CHECKLIST
+───────────────────────────────────────────────────────
+
+Security:
+□ Change all test user passwords
+□ Generate strong NEXTAUTH_SECRET
+□ Set up SSL (automatic with Vercel)
+□ Review user permissions
+
+Data:
+□ Seed production database with real inventory
+□ Clear test audit logs
+□ Verify all 130 items loaded correctly
+
+Testing:
+□ Test as Driver, Probie, Admin
+□ Test on mobile devices
+□ Test take/return functionality
+□ Test inventory check
+□ Test audit log export
+
+Post-Launch:
+□ Train CUEMS members on new system
+□ Monitor for bugs first week
+□ Set up error tracking (Sentry)
+
+ESTIMATED TOTAL TIME: 1-2 hours
+COST: $12/year for domain + $0 for Vercel free tier
+
+═══════════════════════════════════════════════════════
+QUICK COMMANDS FOR DEPLOYMENT
+═══════════════════════════════════════════════════════
+
+Generate secure secret:
+$ openssl rand -base64 32
+
+Push to GitHub:
+$ git add -A
+$ git commit -m "Production ready"
+$ git push origin main
+
+Connect to production DB and migrate:
+$ DATABASE_URL="postgres://..." npx prisma migrate deploy
+$ DATABASE_URL="postgres://..." npx prisma db seed
+
+═══════════════════════════════════════════════════════
+

@@ -22,6 +22,11 @@ export default function AdminPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // New User Invite State
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserRole, setNewUserRole] = useState('DRIVER');
+  const [newUserPassword, setNewUserPassword] = useState('');
+
   // New Inventory Item State
   const [newItemName, setNewItemName] = useState('');
   const [newItemCabinet, setNewItemCabinet] = useState('Left');
@@ -98,6 +103,40 @@ export default function AdminPage() {
     }
   };
 
+  const handleInviteUser = async () => {
+    if (!newUserEmail.trim() || !newUserPassword.trim()) {
+      alert('Please enter email and temporary password');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/users/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: newUserEmail.trim(),
+          role: newUserRole,
+          tempPassword: newUserPassword,
+        }),
+      });
+
+      if (response.ok) {
+        const newUser = await response.json();
+        setUsers([newUser, ...users]);
+        setNewUserEmail('');
+        setNewUserPassword('');
+        setNewUserRole('DRIVER');
+        alert(`User invited! Temporary password: ${newUserPassword}`);
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to invite user');
+      }
+    } catch (error) {
+      console.error('Error inviting user:', error);
+      alert('Failed to invite user');
+    }
+  };
+
   const handleAddItem = async () => {
     if (!newItemName.trim()) {
       alert('Please enter an item name');
@@ -168,6 +207,61 @@ export default function AdminPage() {
           <h2 className="text-2xl font-bold text-columbia-navy mb-6 uppercase tracking-wide">
             User Management
           </h2>
+
+          {/* Invite New User */}
+          <div className="glass-effect p-6 mb-6 border-l-4 border-green-600">
+            <h3 className="text-lg font-bold text-columbia-navy mb-4 uppercase tracking-wide">
+              Invite New User
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="md:col-span-2">
+                <Label htmlFor="userEmail" className="text-sm font-bold uppercase tracking-wide">
+                  Columbia Email
+                </Label>
+                <Input
+                  id="userEmail"
+                  type="email"
+                  placeholder="user@columbia.edu"
+                  value={newUserEmail}
+                  onChange={(e) => setNewUserEmail(e.target.value)}
+                  className="mt-1 h-12 border-2"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-bold uppercase tracking-wide">Role</Label>
+                <select
+                  value={newUserRole}
+                  onChange={(e) => setNewUserRole(e.target.value)}
+                  className="w-full mt-1 h-12 px-3 border-2 border-gray-300 font-semibold"
+                >
+                  <option value="DRIVER">Driver</option>
+                  <option value="PROBIE">Probie</option>
+                  <option value="ADMIN">Admin</option>
+                </select>
+              </div>
+              <div>
+                <Label htmlFor="userPassword" className="text-sm font-bold uppercase tracking-wide">
+                  Temp Password
+                </Label>
+                <Input
+                  id="userPassword"
+                  type="text"
+                  placeholder="temporary123"
+                  value={newUserPassword}
+                  onChange={(e) => setNewUserPassword(e.target.value)}
+                  className="mt-1 h-12 border-2"
+                />
+              </div>
+            </div>
+            <Button
+              onClick={handleInviteUser}
+              className="mt-4 w-full bg-green-600 hover:bg-green-700"
+              size="lg"
+            >
+              <span className="font-bold uppercase tracking-wider">Invite User</span>
+            </Button>
+          </div>
+
           <div className="glass-effect overflow-hidden">
             <div className="divide-y divide-gray-200">
               {users.map((user) => (

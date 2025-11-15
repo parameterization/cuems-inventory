@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -16,6 +16,8 @@ model User {
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
   auditLogs       AuditLog[]
+
+  @@index([email])
 }
 
 model InventoryItem {
@@ -32,6 +34,9 @@ model InventoryItem {
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
   auditLogs       AuditLog[]
+
+  @@index([cabinet])
+  @@index([name])
 }
 
 model AuditLog {
@@ -45,6 +50,11 @@ model AuditLog {
   after       Float
   timestamp   DateTime      @default(now())
   batchId     String?
+
+  @@index([userId])
+  @@index([itemId])
+  @@index([timestamp])
+  @@index([batchId])
 }
 
 
