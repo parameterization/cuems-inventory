@@ -112,14 +112,6 @@ export default function LoginPage() {
               Forgot password?
             </Link>
           </form>
-
-          <div className="mt-8 p-4 bg-blue-50 border-2 border-blue-200">
-            <p className="font-semibold mb-2 text-sm text-slate-700 uppercase tracking-wide">Test Credentials</p>
-            <p className="text-xs text-slate-600">
-              Use any test account with password: 
-              <code className="ml-1 bg-white px-2 py-1 font-mono text-columbia-navy border border-slate-300">password123</code>
-            </p>
-          </div>
         </div>
       </div>
     </div>
