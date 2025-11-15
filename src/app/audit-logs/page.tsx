@@ -16,6 +16,15 @@ interface AuditLog {
   before: number;
   after: number;
   timestamp: string;
+  batchId?: string | null;
+}
+
+interface InventoryCheckBatch {
+  batchId: string;
+  user: string;
+  timestamp: string;
+  logs: AuditLog[];
+  changedCount: number;
 }
 
 export default function AuditLogsPage() {
@@ -23,6 +32,8 @@ export default function AuditLogsPage() {
   const router = useRouter();
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [filteredLogs, setFilteredLogs] = useState<AuditLog[]>([]);
+  const [inventoryChecks, setInventoryChecks] = useState<InventoryCheckBatch[]>([]);
+  const [expandedBatches, setExpandedBatches] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
   const [actionFilter, setActionFilter] = useState('ALL');
   const [isLoading, setIsLoading] = useState(true);
@@ -52,6 +63,36 @@ export default function AuditLogsPage() {
     }
 
     setFilteredLogs(filtered);
+
+    // Group SET actions by batchId for inventory checks
+    const batches = new Map<string, AuditLog[]>();
+    filtered.forEach(log => {
+      if (log.action === 'SET' && log.batchId) {
+        if (!batches.has(log.batchId)) {
+          batches.set(log.batchId, []);
+        }
+        batches.get(log.batchId)!.push(log);
+      }
+    });
+
+    const batchData: InventoryCheckBatch[] = Array.from(batches.entries()).map(([batchId, batchLogs]) => {
+      const changedItems = batchLogs.filter(log => log.before !== log.after);
+      return {
+        batchId,
+        user: batchLogs[0].user.email,
+        timestamp: batchLogs[0].timestamp,
+        logs: batchLogs.sort((a, b) => {
+          // Changed items first
+          const aChanged = a.before !== a.after ? 0 : 1;
+          const bChanged = b.before !== b.after ? 0 : 1;
+          if (aChanged !== bChanged) return aChanged - bChanged;
+          return a.item.name.localeCompare(b.item.name);
+        }),
+        changedCount: changedItems.length,
+      };
+    }).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+    setInventoryChecks(batchData);
   }, [logs, searchQuery, actionFilter]);
 
   const fetchLogs = async () => {
@@ -176,106 +217,223 @@ export default function AuditLogsPage() {
           </div>
           <div className="glass-effect p-6 text-center border-l-4 border-purple-600">
             <div className="text-3xl font-bold text-purple-600">
-              {logs.filter(l => l.action === 'SET').length}
+              {inventoryChecks.length}
             </div>
             <div className="text-sm text-gray-600 font-medium mt-2 uppercase tracking-wide">Inventory Checks</div>
           </div>
         </div>
 
-        {/* Audit Log Table */}
-        <div className="glass-effect overflow-hidden">
+        {/* Audit Logs Display */}
+        <div className="space-y-4">
           {filteredLogs.length === 0 ? (
-            <div className="text-center py-16 text-gray-500">
+            <div className="glass-effect text-center py-16 text-gray-500">
               <p className="text-xl">No audit logs found</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-100 border-b-2 border-gray-300">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wide">
-                      Date/Time
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wide">
-                      User
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wide">
-                      Action
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wide">
-                      Item
-                    </th>
-                    <th className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wide">
-                      Before
-                    </th>
-                    <th className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wide">
-                      After
-                    </th>
-                    <th className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wide">
-                      Change
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {filteredLogs.map((log) => (
-                    <tr
-                      key={log.id}
-                      className="hover:bg-blue-50 transition-colors"
-                    >
-                      <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
-                        {new Date(log.timestamp).toLocaleString('en-US', {
-                          month: '2-digit',
-                          day: '2-digit',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          second: '2-digit',
-                        })}
-                      </td>
-                      <td className="px-6 py-4 text-sm font-medium text-columbia-navy">
-                        {log.user.email}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-block px-3 py-1 text-xs font-bold uppercase tracking-wide ${
-                            log.action === 'TAKE'
-                              ? 'bg-red-600 text-white'
-                              : log.action === 'RETURN'
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-purple-600 text-white'
-                          }`}
-                        >
-                          {log.action}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                        {log.item.name}
-                      </td>
-                      <td className="px-6 py-4 text-center text-sm font-semibold text-gray-700">
-                        {log.before}
-                      </td>
-                      <td className="px-6 py-4 text-center text-sm font-semibold text-gray-700">
-                        {log.after}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <span
-                          className={`inline-block px-3 py-1 text-sm font-bold ${
-                            log.after > log.before
-                              ? 'text-green-700 bg-green-100'
-                              : log.after < log.before
-                              ? 'text-red-700 bg-red-100'
-                              : 'text-gray-700 bg-gray-100'
-                          }`}
-                        >
-                          {log.after > log.before && '+'}
-                          {log.after - log.before}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <>
+              {/* Inventory Check Batches */}
+              {inventoryChecks.map((batch) => (
+                <div key={batch.batchId} className="glass-effect border-l-4 border-purple-600">
+                  <button
+                    onClick={() => {
+                      const newExpanded = new Set(expandedBatches);
+                      if (newExpanded.has(batch.batchId)) {
+                        newExpanded.delete(batch.batchId);
+                      } else {
+                        newExpanded.add(batch.batchId);
+                      }
+                      setExpandedBatches(newExpanded);
+                    }}
+                    className="w-full px-6 py-5 flex items-center justify-between hover:bg-purple-50 transition-all"
+                  >
+                    <div className="flex items-center gap-4">
+                      <span className="text-2xl">{expandedBatches.has(batch.batchId) ? '📂' : '📁'}</span>
+                      <div className="text-left">
+                        <div className="font-bold text-lg text-purple-700 uppercase tracking-wide">
+                          Inventory Check
+                        </div>
+                        <div className="text-sm text-gray-600 mt-1">
+                          {new Date(batch.timestamp).toLocaleString('en-US', {
+                            month: '2-digit',
+                            day: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })} • {batch.user}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-purple-700">{batch.changedCount}</div>
+                        <div className="text-xs text-gray-600 uppercase tracking-wide">Items Changed</div>
+                      </div>
+                      <div className="text-2xl text-gray-400">{expandedBatches.has(batch.batchId) ? '▼' : '▶'}</div>
+                    </div>
+                  </button>
+
+                  {expandedBatches.has(batch.batchId) && (
+                    <div className="border-t-2 border-gray-200">
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead className="bg-gray-100 border-b-2 border-gray-300">
+                            <tr>
+                              <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wide">
+                                Item
+                              </th>
+                              <th className="px-6 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wide">
+                                Before
+                              </th>
+                              <th className="px-6 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wide">
+                                After
+                              </th>
+                              <th className="px-6 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wide">
+                                Change
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200">
+                            {batch.logs.map((log) => (
+                              <tr
+                                key={log.id}
+                                className={`hover:bg-purple-50 transition-colors ${
+                                  log.before !== log.after ? 'bg-yellow-50 border-l-4 border-yellow-500' : ''
+                                }`}
+                              >
+                                <td className="px-6 py-3 text-sm font-medium text-gray-900">
+                                  {log.item.name}
+                                  {log.before !== log.after && (
+                                    <span className="ml-2 text-xs font-bold text-yellow-700 bg-yellow-200 px-2 py-1 uppercase">Changed</span>
+                                  )}
+                                </td>
+                                <td className="px-6 py-3 text-center text-sm font-semibold text-gray-700">
+                                  {log.before}
+                                </td>
+                                <td className="px-6 py-3 text-center text-sm font-semibold text-gray-700">
+                                  {log.after}
+                                </td>
+                                <td className="px-6 py-3 text-center">
+                                  {log.before !== log.after ? (
+                                    <span
+                                      className={`inline-block px-3 py-1 text-sm font-bold ${
+                                        log.after > log.before
+                                          ? 'text-green-700 bg-green-100'
+                                          : 'text-red-700 bg-red-100'
+                                      }`}
+                                    >
+                                      {log.after > log.before && '+'}
+                                      {log.after - log.before}
+                                    </span>
+                                  ) : (
+                                    <span className="text-gray-400 text-sm">—</span>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {/* Individual TAKE/RETURN Actions */}
+              {filteredLogs.filter(log => log.action !== 'SET' || !log.batchId).length > 0 && (
+                <div className="glass-effect overflow-hidden">
+                  <div className="bg-gray-100 px-6 py-4 border-b-2 border-gray-300">
+                    <h3 className="font-bold text-lg text-gray-700 uppercase tracking-wide">
+                      Individual Take/Return Actions
+                    </h3>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 border-b-2 border-gray-200">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wide">
+                            Date/Time
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wide">
+                            User
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wide">
+                            Action
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wide">
+                            Item
+                          </th>
+                          <th className="px-6 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wide">
+                            Before
+                          </th>
+                          <th className="px-6 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wide">
+                            After
+                          </th>
+                          <th className="px-6 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wide">
+                            Change
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {filteredLogs
+                          .filter(log => log.action !== 'SET' || !log.batchId)
+                          .map((log) => (
+                            <tr
+                              key={log.id}
+                              className="hover:bg-blue-50 transition-colors"
+                            >
+                              <td className="px-6 py-3 text-sm text-gray-900 whitespace-nowrap">
+                                {new Date(log.timestamp).toLocaleString('en-US', {
+                                  month: '2-digit',
+                                  day: '2-digit',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  second: '2-digit',
+                                })}
+                              </td>
+                              <td className="px-6 py-3 text-sm font-medium text-columbia-navy">
+                                {log.user.email}
+                              </td>
+                              <td className="px-6 py-3">
+                                <span
+                                  className={`inline-block px-3 py-1 text-xs font-bold uppercase tracking-wide ${
+                                    log.action === 'TAKE'
+                                      ? 'bg-red-600 text-white'
+                                      : 'bg-blue-600 text-white'
+                                  }`}
+                                >
+                                  {log.action}
+                                </span>
+                              </td>
+                              <td className="px-6 py-3 text-sm font-medium text-gray-900">
+                                {log.item.name}
+                              </td>
+                              <td className="px-6 py-3 text-center text-sm font-semibold text-gray-700">
+                                {log.before}
+                              </td>
+                              <td className="px-6 py-3 text-center text-sm font-semibold text-gray-700">
+                                {log.after}
+                              </td>
+                              <td className="px-6 py-3 text-center">
+                                <span
+                                  className={`inline-block px-3 py-1 text-sm font-bold ${
+                                    log.after > log.before
+                                      ? 'text-green-700 bg-green-100'
+                                      : 'text-red-700 bg-red-100'
+                                  }`}
+                                >
+                                  {log.after > log.before && '+'}
+                                  {log.after - log.before}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
 

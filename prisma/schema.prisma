@@ -44,6 +44,7 @@ model AuditLog {
   before      Float
   after       Float
   timestamp   DateTime      @default(now())
+  batchId     String?
 }
 
 

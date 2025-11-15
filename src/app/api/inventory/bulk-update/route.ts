@@ -20,6 +20,16 @@ export async function POST(req: NextRequest) {
 
     const isAdmin = session.user.role === 'ADMIN';
 
+    // Get current state before updating
+    const currentItems = await prisma.inventoryItem.findMany({
+      where: {
+        id: { in: updates.map((u: any) => u.id) },
+      },
+    });
+
+    // Generate a unique batch ID for this inventory check session
+    const batchId = `batch_${Date.now()}_${session.user.id}`;
+
     // Perform bulk update in transaction
     const results = await prisma.$transaction(
       updates.map((update: any) => {
@@ -45,13 +55,7 @@ export async function POST(req: NextRequest) {
       })
     );
 
-    // Create audit logs
-    const currentItems = await prisma.inventoryItem.findMany({
-      where: {
-        id: { in: updates.map((u: any) => u.id) },
-      },
-    });
-
+    // Create audit logs with batch ID
     await prisma.$transaction(
       updates.map((update: any) => {
         const oldItem = currentItems.find((item) => item.id === update.id);
@@ -62,6 +66,7 @@ export async function POST(req: NextRequest) {
             action: 'SET',
             before: oldItem?.quantity || 0,
             after: update.quantity,
+            batchId: batchId,
           },
         });
       })
