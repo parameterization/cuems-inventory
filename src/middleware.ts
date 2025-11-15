@@ -27,7 +27,11 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ token, req }) => {
-        if (req.nextUrl.pathname.startsWith('/login')) {
+        const path = req.nextUrl.pathname;
+        // Allow access to auth-related pages without login
+        if (path.startsWith('/login') || 
+            path.startsWith('/forgot-password') || 
+            path.startsWith('/reset-password')) {
           return true;
         }
         return !!token;
