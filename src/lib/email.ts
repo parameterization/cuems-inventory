@@ -1,6 +1,6 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 export async function sendInviteEmail(
   email: string,
@@ -8,6 +8,11 @@ export async function sendInviteEmail(
   invitedBy: string
 ) {
   const resetUrl = `${process.env.NEXTAUTH_URL}/set-password?email=${encodeURIComponent(email)}`;
+
+  if (!resend) {
+    console.warn('Resend not configured - email not sent');
+    return;
+  }
 
   try {
     await resend.emails.send({
@@ -47,6 +52,11 @@ export async function sendPasswordResetEmail(
   resetToken: string
 ) {
   const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${resetToken}`;
+
+  if (!resend) {
+    console.warn('Resend not configured - email not sent');
+    return;
+  }
 
   try {
     await resend.emails.send({
