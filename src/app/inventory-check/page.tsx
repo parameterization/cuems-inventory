@@ -218,11 +218,11 @@ export default function InventoryCheckPage() {
                               </label>
                               <Input
                                 type="number"
-                                step="1"
-                                value={Math.round(Number(editedItems[item.id]?.quantity ?? item.quantity))}
+                                step="0.25"
+                                value={Number(editedItems[item.id]?.quantity ?? item.quantity).toFixed(2)}
                                 onChange={(e) => {
-                                  const val = parseInt(e.target.value);
-                                  handleFieldChange(item.id, 'quantity', isNaN(val) ? 0 : val);
+                                  const val = parseFloat(e.target.value);
+                                  handleFieldChange(item.id, 'quantity', isNaN(val) ? 0 : Math.round(val * 100) / 100);
                                 }}
                                 className="h-12 text-lg font-bold border-2 border-gray-300"
                               />
@@ -235,11 +235,11 @@ export default function InventoryCheckPage() {
                               </label>
                               <Input
                                 type="number"
-                                step="1"
-                                value={Math.round(Number(editedItems[item.id]?.minimalBalance ?? item.minimalBalance))}
+                                step="0.25"
+                                value={Number(editedItems[item.id]?.minimalBalance ?? item.minimalBalance).toFixed(2)}
                                 onChange={(e) => {
-                                  const val = parseInt(e.target.value);
-                                  handleFieldChange(item.id, 'minimalBalance', isNaN(val) ? 0 : val);
+                                  const val = parseFloat(e.target.value);
+                                  handleFieldChange(item.id, 'minimalBalance', isNaN(val) ? 0 : Math.round(val * 100) / 100);
                                 }}
                                 disabled={!isAdmin}
                                 className="h-12 text-lg font-bold border-2 border-gray-300"
