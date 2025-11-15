@@ -16,10 +16,20 @@ interface User {
   isSupremeAdmin: boolean;
 }
 
+interface InventoryItem {
+  id: string;
+  name: string;
+  cabinet: string;
+  shelf: string;
+  quantity: number;
+  minimalBalance: number;
+}
+
 export default function AdminPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
+  const [items, setItems] = useState<InventoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // New User Invite State
@@ -45,6 +55,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     fetchUsers();
+    fetchInventory();
   }, []);
 
   const fetchUsers = async () => {
@@ -58,6 +69,18 @@ export default function AdminPage() {
       console.error('Error fetching users:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchInventory = async () => {
+    try {
+      const response = await fetch('/api/inventory');
+      if (response.ok) {
+        const data = await response.json();
+        setItems(data);
+      }
+    } catch (error) {
+      console.error('Error fetching inventory:', error);
     }
   };
 
@@ -159,6 +182,8 @@ export default function AdminPage() {
       });
 
       if (response.ok) {
+        const newItem = await response.json();
+        setItems([...items, newItem]);
         alert('Item added successfully!');
         // Reset form
         setNewItemName('');
@@ -177,6 +202,29 @@ export default function AdminPage() {
     } catch (error) {
       console.error('Error adding item:', error);
       alert('Failed to add item');
+    }
+  };
+
+  const handleDeleteItem = async (itemId: string, itemName: string) => {
+    if (!confirm(`Are you sure you want to permanently delete "${itemName}"? This will also delete all audit history for this item.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/inventory/${itemId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setItems(items.filter(item => item.id !== itemId));
+        alert('Item deleted successfully');
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to delete item');
+      }
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      alert('Failed to delete item');
     }
   };
 
@@ -439,6 +487,39 @@ export default function AdminPage() {
             >
               <span className="font-bold uppercase tracking-wider">Add Item to Inventory</span>
             </Button>
+          </div>
+
+          {/* Existing Inventory Items */}
+          <div className="mt-8">
+            <h3 className="text-xl font-bold text-columbia-navy mb-4 uppercase tracking-wide">
+              Existing Items ({items.length})
+            </h3>
+            <div className="glass-effect overflow-hidden">
+              <div className="max-h-96 overflow-y-auto">
+                <div className="divide-y divide-gray-200">
+                  {items.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between p-4 hover:bg-blue-50 transition-all"
+                    >
+                      <div className="flex-1">
+                        <p className="font-semibold text-columbia-navy">{item.name}</p>
+                        <p className="text-sm text-gray-600">
+                          {item.cabinet} Cabinet, Shelf {item.shelf} • Qty: {item.quantity} • Min: {item.minimalBalance}
+                        </p>
+                      </div>
+                      <Button
+                        onClick={() => handleDeleteItem(item.id, item.name)}
+                        className="bg-red-600 hover:bg-red-700"
+                        size="icon"
+                      >
+                        <Trash2 size={18} />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
