@@ -39,6 +39,7 @@ export default function AuditLogsPage() {
   const [dateRange, setDateRange] = useState('ALL');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [showExportDialog, setShowExportDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -150,8 +151,13 @@ export default function AuditLogsPage() {
     return logsToExport;
   };
 
+  const handleExportClick = () => {
+    setShowExportDialog(true);
+  };
+
   const exportToCSV = () => {
     const logsToExport = getFilteredLogsForExport();
+    setShowExportDialog(false);
     
     const headers = ['Date/Time', 'User', 'Action', 'Item', 'Before', 'After', 'Change'];
     const rows = logsToExport.map(log => [
@@ -213,54 +219,13 @@ export default function AuditLogsPage() {
             </div>
             
             <Button
-              onClick={exportToCSV}
+              onClick={handleExportClick}
               className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg px-8"
               size="lg"
             >
               <Download className="mr-2" size={20} />
               <span className="font-bold uppercase">Export CSV</span>
             </Button>
-          </div>
-
-          {/* Date Range Export Options */}
-          <div className="glass-effect p-4">
-            <div className="flex items-center gap-4 flex-wrap">
-              <label className="text-sm font-bold text-gray-700 uppercase tracking-wide">
-                Export Date Range:
-              </label>
-              <select
-                value={dateRange}
-                onChange={(e) => setDateRange(e.target.value)}
-                className="px-4 py-2 border-2 border-gray-300 font-semibold text-sm uppercase tracking-wide"
-              >
-                <option value="ALL">All Time</option>
-                <option value="TODAY">Today Only</option>
-                <option value="WEEK">Last 7 Days</option>
-                <option value="MONTH">Last 30 Days</option>
-                <option value="3MONTHS">Last 3 Months</option>
-                <option value="CUSTOM">Custom Range</option>
-              </select>
-
-              {dateRange === 'CUSTOM' && (
-                <>
-                  <Input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="w-40 h-10 border-2"
-                    placeholder="Start date"
-                  />
-                  <span className="text-gray-500 font-bold">to</span>
-                  <Input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="w-40 h-10 border-2"
-                    placeholder="End date"
-                  />
-                </>
-              )}
-            </div>
           </div>
 
           {/* Action Filter Buttons */}
@@ -527,6 +492,82 @@ export default function AuditLogsPage() {
           <span className="font-bold text-columbia-navy">{logs.length}</span> audit logs
         </div>
       </div>
+
+      {/* Export Dialog */}
+      {showExportDialog && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={() => setShowExportDialog(false)}>
+          <div className="glass-effect p-8 max-w-lg w-full mx-4" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-2xl font-bold text-columbia-navy mb-6 uppercase tracking-wide">
+              Export Audit Logs
+            </h2>
+
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 uppercase tracking-wide mb-2">
+                  Select Date Range
+                </label>
+                <select
+                  value={dateRange}
+                  onChange={(e) => setDateRange(e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-gray-300 font-semibold text-base"
+                >
+                  <option value="ALL">All Time</option>
+                  <option value="TODAY">Today Only</option>
+                  <option value="WEEK">Last 7 Days</option>
+                  <option value="MONTH">Last 30 Days</option>
+                  <option value="3MONTHS">Last 3 Months</option>
+                  <option value="CUSTOM">Custom Range</option>
+                </select>
+              </div>
+
+              {dateRange === 'CUSTOM' && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 uppercase tracking-wide mb-2">
+                      Start Date
+                    </label>
+                    <Input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="w-full h-12 border-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 uppercase tracking-wide mb-2">
+                      End Date
+                    </label>
+                    <Input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="w-full h-12 border-2"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <Button
+                  onClick={() => setShowExportDialog(false)}
+                  className="bg-white hover:bg-gray-100 text-gray-700 border-2 border-gray-400"
+                  size="lg"
+                >
+                  <span className="font-bold uppercase">Cancel</span>
+                </Button>
+                <Button
+                  onClick={exportToCSV}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                  size="lg"
+                >
+                  <Download className="mr-2" size={18} />
+                  <span className="font-bold uppercase">Export</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
