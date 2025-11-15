@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { sendInviteEmail } from '@/lib/email';
 import * as bcrypt from 'bcryptjs';
 
 export async function POST(req: NextRequest) {
@@ -43,6 +44,7 @@ export async function POST(req: NextRequest) {
         passwordHash: hashedPassword,
         role,
         isSupremeAdmin: false,
+        needsPasswordChange: true,
       },
       select: {
         id: true,
@@ -52,6 +54,14 @@ export async function POST(req: NextRequest) {
         createdAt: true,
       },
     });
+
+    // Send invite email
+    try {
+      await sendInviteEmail(email, tempPassword, session.user.email);
+    } catch (emailError) {
+      console.error('Failed to send invite email:', emailError);
+      // Continue even if email fails - admin can manually share credentials
+    }
 
     return NextResponse.json(newUser, { status: 201 });
   } catch (error) {

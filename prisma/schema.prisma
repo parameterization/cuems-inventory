@@ -13,11 +13,26 @@ model User {
   passwordHash    String
   role            String      @default("DRIVER")
   isSupremeAdmin  Boolean     @default(false)
+  needsPasswordChange Boolean @default(false)
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
   auditLogs       AuditLog[]
+  resetTokens     PasswordResetToken[]
 
   @@index([email])
+}
+
+model PasswordResetToken {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token       String    @unique
+  expiresAt   DateTime
+  used        Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  @@index([token])
+  @@index([userId])
 }
 
 model InventoryItem {

@@ -107,7 +107,18 @@ export function HamburgerMenu({ userRole }: HamburgerMenuProps) {
             )}
           </nav>
 
-          <div className="px-6">
+          <div className="px-6 space-y-2">
+            <Link
+              href="/change-password"
+              onClick={closeMenu}
+              className="block px-5 py-3 text-base font-semibold text-columbia-navy hover:bg-blue-100 transition-all border border-gray-300"
+            >
+              <span className="flex items-center justify-center gap-2">
+                <span className="text-lg">🔑</span>
+                Change Password
+              </span>
+            </Link>
+            
             <button
               onClick={handleLogout}
               className="w-full px-5 py-4 text-lg font-semibold text-white bg-red-600 hover:bg-red-700 transition-all shadow-md hover:shadow-lg"

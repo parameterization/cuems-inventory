@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { HamburgerMenu } from '@/components/HamburgerMenu';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import { getPusherClient } from '@/lib/pusher';
 
 interface InventoryItem {
   id: string;
@@ -28,6 +29,23 @@ export default function InventoryLevelsPage() {
 
   useEffect(() => {
     fetchInventory();
+
+    // Set up real-time updates
+    if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_PUSHER_KEY) {
+      const pusher = getPusherClient();
+      const channel = pusher.subscribe('inventory');
+      
+      channel.bind('item-updated', (updatedItem: InventoryItem) => {
+        setItems(prevItems => 
+          prevItems.map(item => item.id === updatedItem.id ? updatedItem : item)
+        );
+      });
+
+      return () => {
+        channel.unbind_all();
+        pusher.unsubscribe('inventory');
+      };
+    }
   }, []);
 
   const fetchInventory = async () => {

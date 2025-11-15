@@ -3,6 +3,7 @@
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useState, FormEvent } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -103,6 +104,13 @@ export default function LoginPage() {
             >
               {isLoading ? 'Signing in...' : 'Sign In'}
             </Button>
+
+            <Link
+              href="/forgot-password"
+              className="block text-center text-sm text-columbia-navy hover:underline font-medium mt-3"
+            >
+              Forgot password?
+            </Link>
           </form>
 
           <div className="mt-8 p-4 bg-blue-50 border-2 border-blue-200">
