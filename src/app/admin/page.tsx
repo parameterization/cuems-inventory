@@ -25,7 +25,6 @@ export default function AdminPage() {
   // New User Invite State
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserRole, setNewUserRole] = useState('DRIVER');
-  const [newUserPassword, setNewUserPassword] = useState('');
 
   // New Inventory Item State
   const [newItemName, setNewItemName] = useState('');
@@ -104,8 +103,8 @@ export default function AdminPage() {
   };
 
   const handleInviteUser = async () => {
-    if (!newUserEmail.trim() || !newUserPassword.trim()) {
-      alert('Please enter email and temporary password');
+    if (!newUserEmail.trim()) {
+      alert('Please enter email');
       return;
     }
 
@@ -116,17 +115,16 @@ export default function AdminPage() {
         body: JSON.stringify({
           email: newUserEmail.trim(),
           role: newUserRole,
-          tempPassword: newUserPassword,
+          tempPassword: 'unused', // Backend generates secure token instead
         }),
       });
 
       if (response.ok) {
-        const newUser = await response.json();
-        setUsers([newUser, ...users]);
+        const data = await response.json();
+        setUsers([data, ...users]);
         setNewUserEmail('');
-        setNewUserPassword('');
         setNewUserRole('DRIVER');
-        alert(`User invited! Temporary password: ${newUserPassword}`);
+        alert(`Invite sent to ${data.email}! They will receive an email to set their password.`);
       } else {
         const error = await response.json();
         alert(error.error || 'Failed to invite user');
@@ -213,8 +211,11 @@ export default function AdminPage() {
             <h3 className="text-lg font-bold text-columbia-navy mb-4 uppercase tracking-wide">
               Invite New User
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="md:col-span-2">
+            <p className="text-sm text-gray-600 mb-4">
+              User will receive an email with a secure link to set their password.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
                 <Label htmlFor="userEmail" className="text-sm font-bold uppercase tracking-wide">
                   Columbia Email
                 </Label>
@@ -239,26 +240,13 @@ export default function AdminPage() {
                   <option value="ADMIN">Admin</option>
                 </select>
               </div>
-              <div>
-                <Label htmlFor="userPassword" className="text-sm font-bold uppercase tracking-wide">
-                  Temp Password
-                </Label>
-                <Input
-                  id="userPassword"
-                  type="text"
-                  placeholder="temporary123"
-                  value={newUserPassword}
-                  onChange={(e) => setNewUserPassword(e.target.value)}
-                  className="mt-1 h-12 border-2"
-                />
-              </div>
             </div>
             <Button
               onClick={handleInviteUser}
               className="mt-4 w-full bg-green-600 hover:bg-green-700"
               size="lg"
             >
-              <span className="font-bold uppercase tracking-wider">Invite User</span>
+              <span className="font-bold uppercase tracking-wider">Send Invite Email</span>
             </Button>
           </div>
 
