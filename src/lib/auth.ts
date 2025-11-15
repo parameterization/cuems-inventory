@@ -42,7 +42,7 @@ export const authOptions: NextAuthOptions = {
         return {
           id: user.id,
           email: user.email,
-          role: user.role,
+          role: user.role as UserRole,
           isSupremeAdmin: user.isSupremeAdmin,
         };
       },
