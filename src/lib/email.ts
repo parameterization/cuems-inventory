@@ -16,7 +16,7 @@ export async function sendInviteEmail(
 
   try {
     await resend.emails.send({
-      from: 'CUEMS Inventory <noreply@cuemsinventory.com>',
+      from: 'CUEMS Inventory <onboarding@resend.dev>',
       to: email,
       subject: 'Welcome to CUEMS Inventory',
       html: `
@@ -60,7 +60,7 @@ export async function sendPasswordResetEmail(
 
   try {
     await resend.emails.send({
-      from: 'CUEMS Inventory <noreply@cuemsinventory.com>',
+      from: 'CUEMS Inventory <onboarding@resend.dev>',
       to: email,
       subject: 'Reset Your CUEMS Inventory Password',
       html: `
