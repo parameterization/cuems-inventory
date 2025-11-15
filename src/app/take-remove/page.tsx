@@ -228,9 +228,9 @@ export default function TakeRemovePage() {
                                   <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Current</div>
                                   <span
                                     className={`text-2xl font-bold px-4 py-2 block ${
-                                      item.quantity === 0
+                                      Number(item.quantity) === 0
                                         ? 'bg-red-600 text-white'
-                                        : item.quantity < item.minimalBalance
+                                        : Number(item.quantity) < Number(item.minimalBalance)
                                         ? 'bg-amber-500 text-white'
                                         : 'bg-emerald-600 text-white'
                                     }`}
