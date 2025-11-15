@@ -64,11 +64,17 @@ export default function InventoryCheckPage() {
   };
 
   const handleFieldChange = (itemId: string, field: keyof InventoryItem, value: any) => {
+    // Round to 2 decimal places for quantity and minimalBalance to avoid float precision errors
+    let processedValue = value;
+    if ((field === 'quantity' || field === 'minimalBalance') && typeof value === 'number') {
+      processedValue = Math.round(value * 100) / 100;
+    }
+    
     setEditedItems(prev => ({
       ...prev,
       [itemId]: {
         ...prev[itemId],
-        [field]: value,
+        [field]: processedValue,
       },
     }));
   };
@@ -214,7 +220,10 @@ export default function InventoryCheckPage() {
                                 type="number"
                                 step="0.01"
                                 value={editedItems[item.id]?.quantity ?? item.quantity}
-                                onChange={(e) => handleFieldChange(item.id, 'quantity', parseFloat(e.target.value) || 0)}
+                                onChange={(e) => {
+                                  const val = parseFloat(e.target.value);
+                                  handleFieldChange(item.id, 'quantity', isNaN(val) ? 0 : Math.round(val * 100) / 100);
+                                }}
                                 className="h-12 text-lg font-bold border-2 border-gray-300"
                               />
                             </div>
@@ -228,7 +237,10 @@ export default function InventoryCheckPage() {
                                 type="number"
                                 step="0.01"
                                 value={editedItems[item.id]?.minimalBalance ?? item.minimalBalance}
-                                onChange={(e) => handleFieldChange(item.id, 'minimalBalance', parseFloat(e.target.value) || 0)}
+                                onChange={(e) => {
+                                  const val = parseFloat(e.target.value);
+                                  handleFieldChange(item.id, 'minimalBalance', isNaN(val) ? 0 : Math.round(val * 100) / 100);
+                                }}
                                 disabled={!isAdmin}
                                 className="h-12 text-lg font-bold border-2 border-gray-300"
                               />
