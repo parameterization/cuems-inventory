@@ -41,8 +41,8 @@ model InventoryItem {
   cabinet         String      
   shelf           String      
   unit            String      
-  quantity        Float       @default(0)
-  minimalBalance  Float       
+  quantity        Decimal     @default(0) @db.Decimal(10, 2)
+  minimalBalance  Decimal     @db.Decimal(10, 2)       
   itemNumber      String?     
   vendor          String?     
   notes           String?     
@@ -61,8 +61,8 @@ model AuditLog {
   itemId      String
   item        InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
   action      String
-  before      Float
-  after       Float
+  before      Decimal       @db.Decimal(10, 2)
+  after       Decimal       @db.Decimal(10, 2)
   timestamp   DateTime      @default(now())
   batchId     String?
 
