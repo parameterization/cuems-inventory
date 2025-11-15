@@ -310,9 +310,6 @@ export default function AdminPage() {
                     {!user.isSupremeAdmin && user.role === 'ADMIN' && <Shield className="text-blue-500" size={24} />}
                     <div>
                       <p className="font-semibold text-columbia-navy text-lg">{user.email}</p>
-                      {user.isSupremeAdmin && (
-                        <p className="text-xs text-yellow-600 font-bold uppercase">Supreme Admin</p>
-                      )}
                     </div>
                   </div>
 
