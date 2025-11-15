@@ -33,19 +33,34 @@ export default function TakeRemovePage() {
 
     // Set up real-time updates
     if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_PUSHER_KEY) {
-      const pusher = getPusherClient();
-      const channel = pusher.subscribe('inventory');
-      
-      channel.bind('item-updated', (updatedItem: InventoryItem) => {
-        setItems(prevItems => 
-          prevItems.map(item => item.id === updatedItem.id ? updatedItem : item)
-        );
-      });
+      try {
+        const pusher = getPusherClient();
+        const channel = pusher.subscribe('inventory');
+        
+        channel.bind('pusher:subscription_succeeded', () => {
+          console.log('✅ Real-time updates connected');
+        });
 
-      return () => {
-        channel.unbind_all();
-        pusher.unsubscribe('inventory');
-      };
+        channel.bind('pusher:subscription_error', (error: any) => {
+          console.error('❌ Real-time connection failed:', error);
+        });
+        
+        channel.bind('item-updated', (updatedItem: InventoryItem) => {
+          console.log('📦 Item updated via Pusher:', updatedItem.name);
+          setItems(prevItems => 
+            prevItems.map(item => item.id === updatedItem.id ? updatedItem : item)
+          );
+        });
+
+        return () => {
+          channel.unbind_all();
+          pusher.unsubscribe('inventory');
+        };
+      } catch (error) {
+        console.error('Pusher setup error:', error);
+      }
+    } else {
+      console.warn('Pusher not configured - real-time updates disabled');
     }
   }, []);
 
