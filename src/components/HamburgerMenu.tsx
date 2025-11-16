@@ -83,6 +83,16 @@ export function HamburgerMenu({ userRole }: HamburgerMenuProps) {
 
             {canManageUsers(userRole) && (
               <Link
+                href="/manage-locations"
+                onClick={closeMenu}
+                className="block px-6 py-4 text-base font-bold text-columbia-navy hover:bg-blue-100 transition-all border-l-4 border-transparent hover:border-columbia-navy uppercase tracking-wide"
+              >
+                Manage Locations
+              </Link>
+            )}
+
+            {canManageUsers(userRole) && (
+              <Link
                 href="/admin"
                 onClick={closeMenu}
                 className="block px-6 py-4 text-base font-bold text-columbia-navy hover:bg-blue-100 transition-all border-l-4 border-transparent hover:border-columbia-navy uppercase tracking-wide"
