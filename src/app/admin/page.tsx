@@ -23,6 +23,9 @@ interface InventoryItem {
   shelf: string;
   quantity: number;
   minimalBalance: number;
+  itemNumber?: string | null;
+  vendor?: string | null;
+  notes?: string | null;
 }
 
 export default function AdminPage() {
@@ -30,6 +33,10 @@ export default function AdminPage() {
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [items, setItems] = useState<InventoryItem[]>([]);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [moveTargetCabinet, setMoveTargetCabinet] = useState('');
+  const [moveTargetShelf, setMoveTargetShelf] = useState('');
+  const [activeTab, setActiveTab] = useState<'users' | 'inventory'>('users');
   const [isLoading, setIsLoading] = useState(true);
 
   // New User Invite State
@@ -205,26 +212,71 @@ export default function AdminPage() {
     }
   };
 
-  const handleDeleteItem = async (itemId: string, itemName: string) => {
-    if (!confirm(`Are you sure you want to permanently delete "${itemName}"? This will also delete all audit history for this item.`)) {
+  const toggleItem = (itemId: string) => {
+    const newSelected = new Set(selectedItems);
+    if (newSelected.has(itemId)) {
+      newSelected.delete(itemId);
+    } else {
+      newSelected.add(itemId);
+    }
+    setSelectedItems(newSelected);
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedItems.size === 0) {
+      alert('No items selected');
+      return;
+    }
+
+    if (!confirm(`⚠️ PERMANENTLY DELETE ${selectedItems.size} items?\n\nThis will also delete all audit history.\n\nCANNOT BE UNDONE!`)) {
       return;
     }
 
     try {
-      const response = await fetch(`/api/inventory/${itemId}`, {
-        method: 'DELETE',
+      const deletePromises = Array.from(selectedItems).map(itemId =>
+        fetch(`/api/inventory/${itemId}`, { method: 'DELETE' })
+      );
+      await Promise.all(deletePromises);
+      setItems(items.filter(item => !selectedItems.has(item.id)));
+      setSelectedItems(new Set());
+      alert(`${selectedItems.size} items deleted`);
+    } catch (error) {
+      console.error('Error deleting items:', error);
+      alert('Failed to delete items');
+    }
+  };
+
+  const handleBulkMove = async () => {
+    if (selectedItems.size === 0) {
+      alert('No items selected');
+      return;
+    }
+
+    if (!moveTargetCabinet || !moveTargetShelf) {
+      alert('Select target cabinet and shelf');
+      return;
+    }
+
+    const updates = Array.from(selectedItems).map(itemId => {
+      const item = items.find(i => i.id === itemId);
+      return { ...item, id: itemId, cabinet: moveTargetCabinet, shelf: moveTargetShelf };
+    });
+
+    try {
+      const response = await fetch('/api/inventory/bulk-update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ updates }),
       });
 
       if (response.ok) {
-        setItems(items.filter(item => item.id !== itemId));
-        alert('Item deleted successfully');
-      } else {
-        const error = await response.json();
-        alert(error.error || 'Failed to delete item');
+        alert('Items moved successfully!');
+        setSelectedItems(new Set());
+        await fetchInventory();
       }
     } catch (error) {
-      console.error('Error deleting item:', error);
-      alert('Failed to delete item');
+      console.error('Error moving items:', error);
+      alert('Failed to move items');
     }
   };
 
@@ -240,14 +292,41 @@ export default function AdminPage() {
     <div className="min-h-screen pb-20">
       {session && <HamburgerMenu userRole={session.user.role} />}
 
-      <div className="pt-24 px-4 max-w-6xl mx-auto">
+      <div className="pt-24 px-4 max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-columbia-navy mb-2 tracking-tight">
             Admin Panel
           </h1>
-          <p className="text-gray-600 text-lg">Manage users and inventory</p>
+          <p className="text-gray-600 text-lg">Complete system management</p>
         </div>
 
+        {/* Tabs */}
+        <div className="flex gap-2 mb-8">
+          <button
+            onClick={() => setActiveTab('users')}
+            className={`px-8 py-4 font-bold uppercase tracking-wide transition-all ${
+              activeTab === 'users'
+                ? 'bg-columbia-navy text-white shadow-lg'
+                : 'bg-white text-columbia-navy border-2 border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            User Management
+          </button>
+          <button
+            onClick={() => setActiveTab('inventory')}
+            className={`px-8 py-4 font-bold uppercase tracking-wide transition-all ${
+              activeTab === 'inventory'
+                ? 'bg-columbia-navy text-white shadow-lg'
+                : 'bg-white text-columbia-navy border-2 border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            Inventory Management
+          </button>
+        </div>
+
+        {/* USER MANAGEMENT TAB */}
+        {activeTab === 'users' && (
+        <div>
         {/* User Management Section */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-columbia-navy mb-6 uppercase tracking-wide">
@@ -486,39 +565,308 @@ export default function AdminPage() {
             </Button>
           </div>
 
-          {/* Existing Inventory Items */}
-          <div className="mt-8">
-            <h3 className="text-xl font-bold text-columbia-navy mb-4 uppercase tracking-wide">
-              Existing Items ({items.length})
-            </h3>
-            <div className="glass-effect overflow-hidden">
-              <div className="max-h-96 overflow-y-auto">
-                <div className="divide-y divide-gray-200">
-                  {items.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between p-4 hover:bg-blue-50 transition-all"
-                    >
-                      <div className="flex-1">
-                        <p className="font-semibold text-columbia-navy">{item.name}</p>
-                        <p className="text-sm text-gray-600">
-                          {item.cabinet} Cabinet, Shelf {item.shelf} • Qty: {item.quantity} • Min: {item.minimalBalance}
-                        </p>
-                      </div>
-                      <Button
-                        onClick={() => handleDeleteItem(item.id, item.name)}
-                        className="bg-red-600 hover:bg-red-700"
-                        size="icon"
-                      >
-                        <Trash2 size={18} />
-                      </Button>
-                    </div>
-                  ))}
+        </div>
+        </div>
+        )}
+
+        {/* INVENTORY MANAGEMENT TAB */}
+        {activeTab === 'inventory' && (
+        <div>
+          {/* Add New Item Section */}
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold text-columbia-navy mb-6 uppercase tracking-wide">
+              Add New Inventory Item
+            </h2>
+
+            <div className="glass-effect p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-3">
+                  <Label htmlFor="itemName" className="text-base font-bold uppercase tracking-wide">
+                    Item Name *
+                  </Label>
+                  <Input
+                    id="itemName"
+                    type="text"
+                    placeholder="e.g., Gauze Pads (4x4)"
+                    value={newItemName}
+                    onChange={(e) => setNewItemName(e.target.value)}
+                    className="mt-1 h-14 text-lg border-2"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-base font-bold uppercase tracking-wide">Cabinet *</Label>
+                  <select
+                    value={newItemCabinet}
+                    onChange={(e) => setNewItemCabinet(e.target.value)}
+                    className="w-full mt-1 h-14 px-4 text-lg border-2 border-gray-300 font-semibold"
+                  >
+                    <option value="Left">Left</option>
+                    <option value="Middle">Middle</option>
+                    <option value="Right">Right</option>
+                    <option value="Floor">Floor</option>
+                    <option value="Armory">Armory</option>
+                  </select>
+                </div>
+
+                <div>
+                  <Label htmlFor="shelf" className="text-base font-bold uppercase tracking-wide">
+                    Shelf *
+                  </Label>
+                  <Input
+                    id="shelf"
+                    type="text"
+                    placeholder="0-4 or N/A"
+                    value={newItemShelf}
+                    onChange={(e) => setNewItemShelf(e.target.value)}
+                    className="mt-1 h-14 text-lg border-2"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="unit" className="text-base font-bold uppercase tracking-wide">
+                    Unit *
+                  </Label>
+                  <Input
+                    id="unit"
+                    type="text"
+                    placeholder="e.g., Box, Unit, Pack"
+                    value={newItemUnit}
+                    onChange={(e) => setNewItemUnit(e.target.value)}
+                    className="mt-1 h-14 text-lg border-2"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="quantity" className="text-base font-bold uppercase tracking-wide">
+                    Initial Quantity *
+                  </Label>
+                  <Input
+                    id="quantity"
+                    type="number"
+                    step="any"
+                    value={newItemQuantity}
+                    onChange={(e) => setNewItemQuantity(e.target.value)}
+                    className="mt-1 h-14 text-lg border-2"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="minBalance" className="text-base font-bold uppercase tracking-wide">
+                    Minimal Balance *
+                  </Label>
+                  <Input
+                    id="minBalance"
+                    type="number"
+                    step="any"
+                    value={newItemMinBalance}
+                    onChange={(e) => setNewItemMinBalance(e.target.value)}
+                    className="mt-1 h-14 text-lg border-2"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="itemNumber" className="text-base font-bold uppercase tracking-wide">
+                    Item Number
+                  </Label>
+                  <Input
+                    id="itemNumber"
+                    type="text"
+                    placeholder="e.g., #123456"
+                    value={newItemNumber}
+                    onChange={(e) => setNewItemNumber(e.target.value)}
+                    className="mt-1 h-14 text-lg border-2"
+                  />
+                </div>
+
+                <div className="lg:col-span-2">
+                  <Label htmlFor="vendor" className="text-base font-bold uppercase tracking-wide">
+                    Vendor
+                  </Label>
+                  <Input
+                    id="vendor"
+                    type="text"
+                    placeholder="e.g., McKesson"
+                    value={newItemVendor}
+                    onChange={(e) => setNewItemVendor(e.target.value)}
+                    className="mt-1 h-14 text-lg border-2"
+                  />
+                </div>
+
+                <div className="lg:col-span-3">
+                  <Label htmlFor="notes" className="text-base font-bold uppercase tracking-wide">
+                    Notes / Expiry / Details
+                  </Label>
+                  <Input
+                    id="notes"
+                    type="text"
+                    placeholder="Add expiry dates, conditions, or other notes..."
+                    value={newItemNotes}
+                    onChange={(e) => setNewItemNotes(e.target.value)}
+                    className="mt-1 h-14 text-lg border-2"
+                  />
+                </div>
+              </div>
+
+              <Button
+                onClick={handleAddItem}
+                className="mt-6 w-full bg-columbia-navy hover:bg-blue-900"
+                size="xl"
+              >
+                <span className="font-bold uppercase tracking-wider">Add Item to Inventory</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* Bulk Operations */}
+          {selectedItems.size > 0 && (
+            <div className="glass-effect p-6 mb-8 border-l-4 border-purple-600">
+              <h2 className="text-xl font-bold text-columbia-navy mb-4 uppercase tracking-wide">
+                {selectedItems.size} Items Selected
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div className="md:col-span-2">
+                  <Label className="text-sm font-bold uppercase tracking-wide">Move To Cabinet</Label>
+                  <select
+                    value={moveTargetCabinet}
+                    onChange={(e) => setMoveTargetCabinet(e.target.value)}
+                    className="w-full mt-1 h-12 px-3 border-2 border-gray-300 font-semibold"
+                  >
+                    <option value="">Select...</option>
+                    <option value="Left">Left</option>
+                    <option value="Middle">Middle</option>
+                    <option value="Right">Right</option>
+                    <option value="Floor">Floor</option>
+                    <option value="Armory">Armory</option>
+                  </select>
+                </div>
+                <div>
+                  <Label className="text-sm font-bold uppercase tracking-wide">Move To Shelf</Label>
+                  <Input
+                    placeholder="0, 1, 2..."
+                    value={moveTargetShelf}
+                    onChange={(e) => setMoveTargetShelf(e.target.value)}
+                    className="mt-1 h-12 border-2"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <Button
+                    onClick={handleBulkMove}
+                    className="w-full bg-purple-600 hover:bg-purple-700"
+                    size="lg"
+                  >
+                    <span className="font-bold uppercase">Move</span>
+                  </Button>
+                </div>
+                <div className="flex items-end">
+                  <Button
+                    onClick={handleBulkDelete}
+                    className="w-full bg-red-600 hover:bg-red-700"
+                    size="lg"
+                  >
+                    <Trash2 className="mr-2" size={18} />
+                    <span className="font-bold uppercase">Delete</span>
+                  </Button>
                 </div>
               </div>
             </div>
+          )}
+
+          {/* Inventory Grid - Organized by Cabinet/Shelf */}
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-columbia-navy uppercase tracking-wide">
+                All Items ({items.length})
+              </h2>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => setSelectedItems(new Set(items.map(i => i.id)))}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <span className="font-bold uppercase">Select All</span>
+                </Button>
+                <Button
+                  onClick={() => setSelectedItems(new Set())}
+                  variant="outline"
+                >
+                  <span className="font-bold uppercase">Clear</span>
+                </Button>
+              </div>
+            </div>
+
+            {Object.entries(items.reduce((acc, item) => {
+              if (!acc[item.cabinet]) acc[item.cabinet] = {};
+              if (!acc[item.cabinet][item.shelf]) acc[item.cabinet][item.shelf] = [];
+              acc[item.cabinet][item.shelf].push(item);
+              return acc;
+            }, {} as Record<string, Record<string, InventoryItem[]>>)).map(([cabinet, shelves]) => (
+              <div key={cabinet} className="glass-effect p-6 mb-6 border-l-4 border-columbia-navy">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-bold text-columbia-navy uppercase tracking-wide">
+                    {cabinet} Cabinet
+                  </h3>
+                  <Button
+                    onClick={() => {
+                      const cabinetIds = Object.values(shelves).flat().map(i => i.id);
+                      setSelectedItems(new Set(cabinetIds));
+                    }}
+                    size="sm"
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <span className="font-bold uppercase text-xs">Select Cabinet</span>
+                  </Button>
+                </div>
+
+                {Object.entries(shelves).sort((a, b) => {
+                  if (a[0] === 'N/A') return 1;
+                  if (b[0] === 'N/A') return -1;
+                  return a[0].localeCompare(b[0]);
+                }).map(([shelf, shelfItems]) => (
+                  <div key={shelf} className="mb-4 last:mb-0">
+                    <div className="flex items-center justify-between mb-2 bg-gray-100 px-4 py-2 border-l-4 border-blue-500">
+                      <h4 className="font-bold text-gray-700 uppercase tracking-wide">
+                        Shelf {shelf} ({shelfItems.length})
+                      </h4>
+                      <Button
+                        onClick={() => setSelectedItems(new Set(shelfItems.map(i => i.id)))}
+                        size="sm"
+                        className="bg-blue-500 hover:bg-blue-600 h-8"
+                      >
+                        <span className="font-bold uppercase text-xs">Select Shelf</span>
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                      {shelfItems.map((item) => (
+                        <div
+                          key={item.id}
+                          onClick={() => toggleItem(item.id)}
+                          className={`p-3 border-2 cursor-pointer transition-all ${
+                            selectedItems.has(item.id)
+                              ? 'border-purple-600 bg-purple-50'
+                              : 'border-gray-300 hover:border-columbia-navy'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <p className="font-semibold text-columbia-navy text-sm">{item.name}</p>
+                              <p className="text-xs text-gray-600 mt-1">Qty: {Number(item.quantity)}</p>
+                            </div>
+                            {selectedItems.has(item.id) && (
+                              <div className="w-5 h-5 bg-purple-600 text-white flex items-center justify-center text-xs font-bold">
+                                ✓
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
           </div>
         </div>
+        )}
       </div>
     </div>
   );
