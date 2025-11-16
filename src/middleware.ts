@@ -22,10 +22,6 @@ export default withAuth(
       return NextResponse.redirect(new URL('/take-remove', req.url));
     }
 
-    if (path.startsWith('/manage-locations') && token?.role !== 'ADMIN') {
-      return NextResponse.redirect(new URL('/take-remove', req.url));
-    }
-
     return NextResponse.next();
   },
   {
