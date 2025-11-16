@@ -54,6 +54,11 @@ export default function AdminPage() {
   const [newItemVendor, setNewItemVendor] = useState('');
   const [newItemNotes, setNewItemNotes] = useState('');
 
+  // Custom Cabinet Management
+  const [customCabinets, setCustomCabinets] = useState<string[]>([]);
+  const [showAddCabinet, setShowAddCabinet] = useState(false);
+  const [newCabinetName, setNewCabinetName] = useState('');
+
   useEffect(() => {
     if (session && session.user.role !== 'ADMIN') {
       router.push('/take-remove');
@@ -64,6 +69,14 @@ export default function AdminPage() {
     fetchUsers();
     fetchInventory();
   }, []);
+
+  useEffect(() => {
+    // Extract unique cabinet names from existing items
+    const uniqueCabinets = Array.from(new Set(items.map(i => i.cabinet)));
+    const defaultCabinets = ['Left', 'Middle', 'Right', 'Floor', 'Armory'];
+    const custom = uniqueCabinets.filter(c => !defaultCabinets.includes(c));
+    setCustomCabinets(custom);
+  }, [items]);
 
   const fetchUsers = async () => {
     try {
@@ -572,6 +585,71 @@ export default function AdminPage() {
         {/* INVENTORY MANAGEMENT TAB */}
         {activeTab === 'inventory' && (
         <div>
+          {/* Manage Cabinets Section */}
+          <div className="mb-8">
+            <div className="glass-effect p-6 border-l-4 border-blue-600">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-columbia-navy uppercase tracking-wide">
+                  Cabinet Locations
+                </h3>
+                <Button
+                  onClick={() => setShowAddCabinet(!showAddCabinet)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <span className="font-bold uppercase text-sm">{showAddCabinet ? 'Cancel' : '+ Add Cabinet'}</span>
+                </Button>
+              </div>
+
+              {showAddCabinet && (
+                <div className="mb-4 p-4 bg-blue-50 border-2 border-blue-300">
+                  <div className="flex gap-3">
+                    <Input
+                      placeholder="New cabinet name (e.g., Storage Room)"
+                      value={newCabinetName}
+                      onChange={(e) => setNewCabinetName(e.target.value)}
+                      className="flex-1 h-12 border-2"
+                    />
+                    <Button
+                      onClick={() => {
+                        if (newCabinetName.trim()) {
+                          setCustomCabinets([...customCabinets, newCabinetName.trim()]);
+                          setNewCabinetName('');
+                          setShowAddCabinet(false);
+                          alert(`Cabinet "${newCabinetName}" added! You can now assign items to it.`);
+                        }
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      <span className="font-bold uppercase">Add</span>
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-2">
+                <span className="text-sm font-bold text-gray-600 uppercase tracking-wide">Default:</span>
+                {['Left', 'Middle', 'Right', 'Floor', 'Armory'].map(cab => (
+                  <span key={cab} className="px-4 py-2 bg-gray-200 text-gray-700 font-semibold uppercase text-sm">
+                    {cab}
+                  </span>
+                ))}
+                {customCabinets.length > 0 && (
+                  <>
+                    <span className="text-sm font-bold text-blue-600 uppercase tracking-wide ml-4">Custom:</span>
+                    {customCabinets.map(cab => (
+                      <span key={cab} className="px-4 py-2 bg-blue-100 text-blue-700 font-semibold uppercase text-sm border-2 border-blue-300">
+                        {cab}
+                      </span>
+                    ))}
+                  </>
+                )}
+              </div>
+              <p className="text-xs text-gray-600 mt-3">
+                💡 Tip: Shelves are created automatically when you assign items to them (0, 1, 2, 3, 4, N/A, or custom names)
+              </p>
+            </div>
+          </div>
+
           {/* Add New Item Section */}
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-columbia-navy mb-6 uppercase tracking-wide">
@@ -606,6 +684,9 @@ export default function AdminPage() {
                     <option value="Right">Right</option>
                     <option value="Floor">Floor</option>
                     <option value="Armory">Armory</option>
+                    {customCabinets.map(cab => (
+                      <option key={cab} value={cab}>{cab}</option>
+                    ))}
                   </select>
                 </div>
 
@@ -738,6 +819,9 @@ export default function AdminPage() {
                     <option value="Right">Right</option>
                     <option value="Floor">Floor</option>
                     <option value="Armory">Armory</option>
+                    {customCabinets.map(cab => (
+                      <option key={cab} value={cab}>{cab}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
