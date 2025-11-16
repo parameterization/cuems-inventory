@@ -7,6 +7,7 @@ import { HamburgerMenu } from '@/components/HamburgerMenu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Trash2 } from 'lucide-react';
 
 interface InventoryItem {
   id: string;
@@ -65,6 +66,32 @@ export default function ManageLocationsPage() {
 
   const deselectAll = () => {
     setSelectedItems(new Set());
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedItems.size === 0) {
+      alert('No items selected');
+      return;
+    }
+
+    if (!confirm(`⚠️ PERMANENTLY DELETE ${selectedItems.size} items?\n\nThis will also delete all audit history for these items.\n\nThis action CANNOT be undone!`)) {
+      return;
+    }
+
+    try {
+      const deletePromises = Array.from(selectedItems).map(itemId =>
+        fetch(`/api/inventory/${itemId}`, { method: 'DELETE' })
+      );
+
+      await Promise.all(deletePromises);
+
+      alert(`${selectedItems.size} items deleted successfully`);
+      setSelectedItems(new Set());
+      await fetchInventory();
+    } catch (error) {
+      console.error('Error deleting items:', error);
+      alert('Failed to delete items');
+    }
   };
 
   const handleBulkMove = async () => {
@@ -178,6 +205,14 @@ export default function ManageLocationsPage() {
                   size="lg"
                 >
                   <span className="font-bold uppercase">Move Items</span>
+                </Button>
+                <Button
+                  onClick={handleBulkDelete}
+                  className="bg-red-600 hover:bg-red-700"
+                  size="lg"
+                >
+                  <Trash2 className="mr-2" size={18} />
+                  <span className="font-bold uppercase">Delete</span>
                 </Button>
                 <Button
                   onClick={deselectAll}
