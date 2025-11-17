@@ -824,12 +824,28 @@ export default function AdminPage() {
                   <Button
                     onClick={() => {
                       const cabinetIds = Object.values(shelves).flat().map(i => i.id);
-                      setSelectedItems(new Set(cabinetIds));
+                      const allSelected = cabinetIds.every(id => selectedItems.has(id));
+                      
+                      if (allSelected) {
+                        // Deselect all items in this cabinet
+                        const newSelected = new Set(selectedItems);
+                        cabinetIds.forEach(id => newSelected.delete(id));
+                        setSelectedItems(newSelected);
+                      } else {
+                        // Select all items in this cabinet
+                        setSelectedItems(new Set([...selectedItems, ...cabinetIds]));
+                      }
                     }}
                     size="sm"
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className={`${
+                      Object.values(shelves).flat().every(i => selectedItems.has(i.id))
+                        ? 'bg-purple-600 hover:bg-purple-700'
+                        : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
                   >
-                    <span className="font-bold uppercase text-xs">Select Cabinet</span>
+                    <span className="font-bold uppercase text-xs">
+                      {Object.values(shelves).flat().every(i => selectedItems.has(i.id)) ? 'Deselect Cabinet' : 'Select Cabinet'}
+                    </span>
                   </Button>
                 </div>
 
@@ -844,11 +860,30 @@ export default function AdminPage() {
                         Shelf {shelf} ({shelfItems.length})
                       </h4>
                       <Button
-                        onClick={() => setSelectedItems(new Set(shelfItems.map(i => i.id)))}
+                        onClick={() => {
+                          const shelfIds = shelfItems.map(i => i.id);
+                          const allSelected = shelfIds.every(id => selectedItems.has(id));
+                          
+                          if (allSelected) {
+                            // Deselect shelf
+                            const newSelected = new Set(selectedItems);
+                            shelfIds.forEach(id => newSelected.delete(id));
+                            setSelectedItems(newSelected);
+                          } else {
+                            // Select shelf
+                            setSelectedItems(new Set([...selectedItems, ...shelfIds]));
+                          }
+                        }}
                         size="sm"
-                        className="bg-blue-500 hover:bg-blue-600 h-8"
+                        className={`h-8 ${
+                          shelfItems.every(i => selectedItems.has(i.id))
+                            ? 'bg-purple-500 hover:bg-purple-600'
+                            : 'bg-blue-500 hover:bg-blue-600'
+                        }`}
                       >
-                        <span className="font-bold uppercase text-xs">Select Shelf</span>
+                        <span className="font-bold uppercase text-xs">
+                          {shelfItems.every(i => selectedItems.has(i.id)) ? 'Deselect' : 'Select'} Shelf
+                        </span>
                       </Button>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
