@@ -833,7 +833,9 @@ export default function AdminPage() {
                         setSelectedItems(newSelected);
                       } else {
                         // Select all items in this cabinet
-                        setSelectedItems(new Set([...selectedItems, ...cabinetIds]));
+                        const newSelected = new Set(selectedItems);
+                        cabinetIds.forEach(id => newSelected.add(id));
+                        setSelectedItems(newSelected);
                       }
                     }}
                     size="sm"
@@ -871,7 +873,9 @@ export default function AdminPage() {
                             setSelectedItems(newSelected);
                           } else {
                             // Select shelf
-                            setSelectedItems(new Set([...selectedItems, ...shelfIds]));
+                            const newSelected = new Set(selectedItems);
+                            shelfIds.forEach(id => newSelected.add(id));
+                            setSelectedItems(newSelected);
                           }
                         }}
                         size="sm"
