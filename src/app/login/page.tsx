@@ -4,7 +4,6 @@ import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useState, FormEvent } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -51,12 +50,11 @@ export default function LoginPage() {
         <div className="glass-effect shadow-2xl p-10 border-0">
           <div className="text-center mb-10">
             <div className="inline-flex items-center justify-center mb-6">
-              <Image
+              <img
                 src="/cuems-logo.png"
                 alt="CUEMS Logo"
-                width={120}
-                height={120}
-                priority
+                width="120"
+                height="120"
                 className="drop-shadow-lg"
               />
             </div>
