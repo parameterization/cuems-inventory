@@ -33,6 +33,7 @@ export default function AdminPage() {
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [items, setItems] = useState<InventoryItem[]>([]);
+  const [cabinets, setCabinets] = useState<any[]>([]);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [moveTargetCabinet, setMoveTargetCabinet] = useState('');
   const [moveTargetShelf, setMoveTargetShelf] = useState('');
@@ -54,8 +55,7 @@ export default function AdminPage() {
   const [newItemVendor, setNewItemVendor] = useState('');
   const [newItemNotes, setNewItemNotes] = useState('');
 
-  // Custom Cabinet Management
-  const [customCabinets, setCustomCabinets] = useState<string[]>([]);
+  // Cabinet Management
   const [showAddCabinet, setShowAddCabinet] = useState(false);
   const [newCabinetName, setNewCabinetName] = useState('');
 
@@ -68,15 +68,20 @@ export default function AdminPage() {
   useEffect(() => {
     fetchUsers();
     fetchInventory();
+    fetchCabinets();
   }, []);
 
-  useEffect(() => {
-    // Extract unique cabinet names from existing items
-    const uniqueCabinets = Array.from(new Set(items.map(i => i.cabinet)));
-    const defaultCabinets = ['Left', 'Middle', 'Right', 'Floor', 'Armory'];
-    const custom = uniqueCabinets.filter(c => !defaultCabinets.includes(c));
-    setCustomCabinets(custom);
-  }, [items]);
+  const fetchCabinets = async () => {
+    try {
+      const response = await fetch('/api/cabinets');
+      if (response.ok) {
+        const data = await response.json();
+        setCabinets(data);
+      }
+    } catch (error) {
+      console.error('Error fetching cabinets:', error);
+    }
+  };
 
   const fetchUsers = async () => {
     try {
@@ -457,18 +462,33 @@ export default function AdminPage() {
                 <div className="mb-4 p-4 bg-blue-50 border-2 border-blue-300">
                   <div className="flex gap-3">
                     <Input
-                      placeholder="New cabinet name (e.g., Storage Room)"
+                      placeholder="New cabinet name (e.g., Storage Room, Truck 1)"
                       value={newCabinetName}
                       onChange={(e) => setNewCabinetName(e.target.value)}
                       className="flex-1 h-12 border-2"
                     />
                     <Button
-                      onClick={() => {
-                        if (newCabinetName.trim()) {
-                          setCustomCabinets([...customCabinets, newCabinetName.trim()]);
-                          setNewCabinetName('');
-                          setShowAddCabinet(false);
-                          alert(`Cabinet "${newCabinetName}" added! You can now assign items to it.`);
+                      onClick={async () => {
+                        if (!newCabinetName.trim()) return;
+                        
+                        try {
+                          const response = await fetch('/api/cabinets', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name: newCabinetName.trim() }),
+                          });
+
+                          if (response.ok) {
+                            await fetchCabinets();
+                            setNewCabinetName('');
+                            setShowAddCabinet(false);
+                            alert('Cabinet added successfully!');
+                          } else {
+                            const error = await response.json();
+                            alert(error.error || 'Failed to add cabinet');
+                          }
+                        } catch (error) {
+                          alert('Failed to add cabinet');
                         }
                       }}
                       className="bg-blue-600 hover:bg-blue-700"
@@ -479,23 +499,46 @@ export default function AdminPage() {
                 </div>
               )}
 
-              <div className="flex flex-wrap gap-2">
-                <span className="text-sm font-bold text-gray-600 uppercase tracking-wide">Default:</span>
-                {['Left', 'Middle', 'Right', 'Floor', 'Armory'].map(cab => (
-                  <span key={cab} className="px-4 py-2 bg-gray-200 text-gray-700 font-semibold uppercase text-sm">
-                    {cab}
-                  </span>
-                ))}
-                {customCabinets.length > 0 && (
-                  <>
-                    <span className="text-sm font-bold text-blue-600 uppercase tracking-wide ml-4">Custom:</span>
-                    {customCabinets.map(cab => (
-                      <span key={cab} className="px-4 py-2 bg-blue-100 text-blue-700 font-semibold uppercase text-sm border-2 border-blue-300">
-                        {cab}
+              <div className="space-y-2">
+                {cabinets.map(cabinet => (
+                  <div key={cabinet.id} className="flex items-center justify-between px-4 py-3 bg-white border-2 border-gray-300">
+                    <div className="flex items-center gap-3">
+                      <span className={`px-3 py-1 text-xs font-bold uppercase ${
+                        cabinet.isDefault ? 'bg-gray-200 text-gray-700' : 'bg-blue-100 text-blue-700'
+                      }`}>
+                        {cabinet.isDefault ? 'DEFAULT' : 'CUSTOM'}
                       </span>
-                    ))}
-                  </>
-                )}
+                      <span className="font-semibold text-columbia-navy">{cabinet.name}</span>
+                    </div>
+                    {!cabinet.isDefault && (
+                      <Button
+                        onClick={async () => {
+                          if (!confirm(`Delete "${cabinet.name}" cabinet?`)) return;
+                          
+                          try {
+                            const response = await fetch(`/api/cabinets/${cabinet.id}`, {
+                              method: 'DELETE',
+                            });
+
+                            if (response.ok) {
+                              await fetchCabinets();
+                              alert('Cabinet deleted');
+                            } else {
+                              const error = await response.json();
+                              alert(error.error);
+                            }
+                          } catch (error) {
+                            alert('Failed to delete cabinet');
+                          }
+                        }}
+                        className="bg-red-600 hover:bg-red-700 h-8"
+                        size="sm"
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    )}
+                  </div>
+                ))}
               </div>
               <p className="text-xs text-gray-600 mt-3">
                 💡 Tip: Shelves are created automatically when you assign items to them (0, 1, 2, 3, 4, N/A, or custom names)
@@ -532,13 +575,8 @@ export default function AdminPage() {
                     onChange={(e) => setNewItemCabinet(e.target.value)}
                     className="w-full mt-1 h-14 px-4 text-lg border-2 border-gray-300 font-semibold"
                   >
-                    <option value="Left">Left</option>
-                    <option value="Middle">Middle</option>
-                    <option value="Right">Right</option>
-                    <option value="Floor">Floor</option>
-                    <option value="Armory">Armory</option>
-                    {customCabinets.map(cab => (
-                      <option key={cab} value={cab}>{cab}</option>
+                    {cabinets.map(cab => (
+                      <option key={cab.id} value={cab.name}>{cab.name}</option>
                     ))}
                   </select>
                 </div>
@@ -667,13 +705,8 @@ export default function AdminPage() {
                     className="w-full mt-1 h-12 px-3 border-2 border-gray-300 font-semibold"
                   >
                     <option value="">Select...</option>
-                    <option value="Left">Left</option>
-                    <option value="Middle">Middle</option>
-                    <option value="Right">Right</option>
-                    <option value="Floor">Floor</option>
-                    <option value="Armory">Armory</option>
-                    {customCabinets.map(cab => (
-                      <option key={cab} value={cab}>{cab}</option>
+                    {cabinets.map(cab => (
+                      <option key={cab.id} value={cab.name}>{cab.name}</option>
                     ))}
                   </select>
                 </div>
