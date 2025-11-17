@@ -58,6 +58,8 @@ export default function AdminPage() {
   // Cabinet Management
   const [showAddCabinet, setShowAddCabinet] = useState(false);
   const [newCabinetName, setNewCabinetName] = useState('');
+  const [editingCabinetId, setEditingCabinetId] = useState<string | null>(null);
+  const [editCabinetName, setEditCabinetName] = useState('');
 
   useEffect(() => {
     if (session && session.user.role !== 'ADMIN') {
@@ -501,16 +503,64 @@ export default function AdminPage() {
 
               <div className="flex flex-wrap gap-2">
                 {cabinets.map(cabinet => (
-                  <div key={cabinet.id} className="inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-gray-300">
-                    <span className={`text-xs font-bold uppercase ${
-                      cabinet.isDefault ? 'text-gray-500' : 'text-blue-600'
-                    }`}>
-                      {cabinet.name}
-                    </span>
-                    {!cabinet.isDefault && (
+                  editingCabinetId === cabinet.id ? (
+                    <div key={cabinet.id} className="inline-flex items-center gap-2 px-3 py-2 bg-blue-50 border-2 border-blue-500">
+                      <Input
+                        value={editCabinetName}
+                        onChange={(e) => setEditCabinetName(e.target.value)}
+                        className="h-6 w-32 text-xs border font-bold"
+                        autoFocus
+                      />
                       <button
                         onClick={async () => {
-                          if (!confirm(`Delete "${cabinet.name}"?`)) return;
+                          try {
+                            const response = await fetch(`/api/cabinets/${cabinet.id}`, {
+                              method: 'PATCH',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ newName: editCabinetName }),
+                            });
+
+                            if (response.ok) {
+                              await fetchCabinets();
+                              await fetchInventory();
+                              setEditingCabinetId(null);
+                            } else {
+                              const error = await response.json();
+                              alert(error.error);
+                            }
+                          } catch (error) {
+                            alert('Failed to rename');
+                          }
+                        }}
+                        className="text-green-600 hover:text-green-700 font-bold text-sm"
+                      >
+                        ✓
+                      </button>
+                      <button
+                        onClick={() => setEditingCabinetId(null)}
+                        className="text-gray-600 hover:text-gray-700 font-bold text-sm"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <div key={cabinet.id} className="inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-gray-300 hover:border-columbia-navy transition-all">
+                      <span className="text-xs font-bold uppercase text-columbia-navy">
+                        {cabinet.name}
+                      </span>
+                      <button
+                        onClick={() => {
+                          setEditingCabinetId(cabinet.id);
+                          setEditCabinetName(cabinet.name);
+                        }}
+                        className="text-blue-600 hover:text-blue-700 font-bold text-xs"
+                        title="Rename"
+                      >
+                        ✎
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (!confirm(`Delete "${cabinet.name}"?\n\nItems will NOT be deleted, just the cabinet name.`)) return;
                           
                           try {
                             const response = await fetch(`/api/cabinets/${cabinet.id}`, {
@@ -528,11 +578,12 @@ export default function AdminPage() {
                           }
                         }}
                         className="text-red-600 hover:text-red-700 font-bold"
+                        title="Delete"
                       >
                         ×
                       </button>
-                    )}
-                  </div>
+                    </div>
+                  )
                 ))}
               </div>
               <p className="text-xs text-gray-600 mt-3">
