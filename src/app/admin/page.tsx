@@ -499,21 +499,18 @@ export default function AdminPage() {
                 </div>
               )}
 
-              <div className="space-y-2">
+              <div className="flex flex-wrap gap-2">
                 {cabinets.map(cabinet => (
-                  <div key={cabinet.id} className="flex items-center justify-between px-4 py-3 bg-white border-2 border-gray-300">
-                    <div className="flex items-center gap-3">
-                      <span className={`px-3 py-1 text-xs font-bold uppercase ${
-                        cabinet.isDefault ? 'bg-gray-200 text-gray-700' : 'bg-blue-100 text-blue-700'
-                      }`}>
-                        {cabinet.isDefault ? 'DEFAULT' : 'CUSTOM'}
-                      </span>
-                      <span className="font-semibold text-columbia-navy">{cabinet.name}</span>
-                    </div>
+                  <div key={cabinet.id} className="inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-gray-300">
+                    <span className={`text-xs font-bold uppercase ${
+                      cabinet.isDefault ? 'text-gray-500' : 'text-blue-600'
+                    }`}>
+                      {cabinet.name}
+                    </span>
                     {!cabinet.isDefault && (
-                      <Button
+                      <button
                         onClick={async () => {
-                          if (!confirm(`Delete "${cabinet.name}" cabinet?`)) return;
+                          if (!confirm(`Delete "${cabinet.name}"?`)) return;
                           
                           try {
                             const response = await fetch(`/api/cabinets/${cabinet.id}`, {
@@ -522,20 +519,18 @@ export default function AdminPage() {
 
                             if (response.ok) {
                               await fetchCabinets();
-                              alert('Cabinet deleted');
                             } else {
                               const error = await response.json();
                               alert(error.error);
                             }
                           } catch (error) {
-                            alert('Failed to delete cabinet');
+                            alert('Failed to delete');
                           }
                         }}
-                        className="bg-red-600 hover:bg-red-700 h-8"
-                        size="sm"
+                        className="text-red-600 hover:text-red-700 font-bold"
                       >
-                        <Trash2 size={14} />
-                      </Button>
+                        ×
+                      </button>
                     )}
                   </div>
                 ))}
