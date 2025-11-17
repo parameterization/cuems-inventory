@@ -49,14 +49,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md relative z-10">
         <div className="glass-effect shadow-2xl p-10 border-0">
           <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center mb-6">
-              <img
-                src="/cuems-logo.png"
-                alt="CUEMS Logo"
-                width="120"
-                height="120"
-                className="drop-shadow-lg"
-              />
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-columbia-navy mb-6 shadow-xl">
+              <span className="text-5xl">🏥</span>
             </div>
             <h1 className="text-4xl font-bold text-columbia-navy mb-2 tracking-tight">
               CUEMS Inventory
