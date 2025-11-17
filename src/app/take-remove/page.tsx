@@ -213,10 +213,10 @@ export default function TakeRemovePage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="w-full bg-gray-400 text-white px-4 py-3 text-center opacity-50 cursor-not-allowed font-bold uppercase">
-                  Can't Take
+                  Cannot Take
                 </div>
                 <div className="w-full bg-gray-400 text-white px-4 py-3 text-center opacity-50 cursor-not-allowed font-bold uppercase">
-                  Can't Return
+                  Cannot Return
                 </div>
               </div>
             </div>
