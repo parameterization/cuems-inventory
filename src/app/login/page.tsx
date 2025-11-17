@@ -4,6 +4,7 @@ import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useState, FormEvent } from 'react';
 import Link from 'next/link';
+import { TechInfoModal } from '@/components/EasterEgg';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,6 +15,10 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Easter egg
+  const [showTechModal, setShowTechModal] = useState(false);
+  const [pressTimer, setPressTimer] = useState<NodeJS.Timeout | null>(null);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -49,7 +54,25 @@ export default function LoginPage() {
       <div className="w-full max-w-md relative z-10">
         <div className="glass-effect shadow-2xl p-10 border-0">
           <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center mb-6">
+            <div 
+              className="inline-flex items-center justify-center mb-6 cursor-pointer"
+              onMouseDown={() => {
+                const timer = setTimeout(() => setShowTechModal(true), 3000);
+                setPressTimer(timer);
+              }}
+              onMouseUp={() => {
+                if (pressTimer) {
+                  clearTimeout(pressTimer);
+                  setPressTimer(null);
+                }
+              }}
+              onMouseLeave={() => {
+                if (pressTimer) {
+                  clearTimeout(pressTimer);
+                  setPressTimer(null);
+                }
+              }}
+            >
               <img
                 src="/cuems-logo.png"
                 alt="CUEMS Logo"
@@ -120,6 +143,8 @@ export default function LoginPage() {
           </form>
         </div>
       </div>
+
+      <TechInfoModal show={showTechModal} onClose={() => setShowTechModal(false)} />
     </div>
   );
 }

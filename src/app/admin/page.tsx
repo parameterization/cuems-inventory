@@ -7,6 +7,7 @@ import { HamburgerMenu } from '@/components/HamburgerMenu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Toast } from '@/components/EasterEgg';
 import { Trash2, Crown, Shield } from 'lucide-react';
 
 interface User {
@@ -39,6 +40,9 @@ export default function AdminPage() {
   const [moveTargetShelf, setMoveTargetShelf] = useState('');
   const [activeTab, setActiveTab] = useState<'users' | 'inventory'>('users');
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Easter egg state
+  const [showCreatorToast, setShowCreatorToast] = useState(false);
 
   // New User Invite State
   const [newUserEmail, setNewUserEmail] = useState('');
@@ -408,7 +412,17 @@ export default function AdminPage() {
                     {user.isSupremeAdmin && <Crown className="text-yellow-500" size={24} />}
                     {!user.isSupremeAdmin && user.role === 'ADMIN' && <Shield className="text-blue-500" size={24} />}
                     <div>
-                      <p className="font-semibold text-columbia-navy text-lg">{user.email}</p>
+                      <p 
+                        className="font-semibold text-columbia-navy text-lg select-text cursor-text"
+                        onClick={(e) => {
+                          if (e.detail === 3 && user.email === 'ps3487@columbia.edu') {
+                            setShowCreatorToast(true);
+                            setTimeout(() => setShowCreatorToast(false), 5000);
+                          }
+                        }}
+                      >
+                        {user.email}
+                      </p>
                     </div>
                   </div>
 
@@ -923,6 +937,11 @@ export default function AdminPage() {
         </div>
         )}
       </div>
+
+      <Toast
+        message={`Param Sampat\nBuilder of CUEMS Inventory Management\nColumbia EMS '28`}
+        show={showCreatorToast}
+      />
     </div>
   );
 }

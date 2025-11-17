@@ -114,6 +114,9 @@ export default function TakeRemovePage() {
 
   const cabinets = ['All', 'Left', 'Middle', 'Right', 'Floor', 'Armory'];
   
+  // Easter egg: search for "param"
+  const isParamSearch = searchQuery.toLowerCase() === 'param';
+  
   const filteredItems = items.filter((item) => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCabinet = selectedCabinet === 'All' || item.cabinet === selectedCabinet;
@@ -183,11 +186,47 @@ export default function TakeRemovePage() {
 
         {/* Grouped Inventory Display */}
         <div className="space-y-8">
-          {Object.keys(groupedItems).length === 0 ? (
+          {/* Easter Egg - Search "param" */}
+          {isParamSearch && (
+            <div className="glass-effect p-6 border-l-4 border-purple-600">
+              <div className="text-center mb-4">
+                <p className="text-2xl font-bold text-columbia-navy">👋 You found the easter egg!</p>
+              </div>
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <h4 className="text-lg font-semibold text-columbia-navy">Param Sampat</h4>
+                  <div className="text-sm text-gray-600 mt-1">
+                    <p>Built this inventory system • Nov 2025</p>
+                    <p className="text-columbia-navy font-medium">ps3487@columbia.edu</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="text-center">
+                    <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Current</div>
+                    <span className="text-2xl font-bold px-4 py-2 block bg-purple-600 text-white">∞</span>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Min</div>
+                    <span className="text-lg font-semibold text-gray-600 px-3 py-2 bg-gray-100 block">1</span>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="w-full bg-gray-400 text-white px-4 py-3 text-center opacity-50 cursor-not-allowed font-bold uppercase">
+                  Can't Take
+                </div>
+                <div className="w-full bg-gray-400 text-white px-4 py-3 text-center opacity-50 cursor-not-allowed font-bold uppercase">
+                  Can't Return
+                </div>
+              </div>
+            </div>
+          )}
+
+          {Object.keys(groupedItems).length === 0 && !isParamSearch ? (
             <div className="text-center py-16 text-gray-500">
               <p className="text-xl">No items found</p>
             </div>
-          ) : (
+          ) : !isParamSearch && (
             Object.entries(groupedItems).map(([cabinet, shelves]) => (
               <div key={cabinet} className="glass-effect p-6 border-l-4 border-columbia-navy">
                 <h2 className="text-2xl font-bold text-columbia-navy mb-6 uppercase tracking-wide">
