@@ -36,7 +36,7 @@ export function TechInfoModal({ show, onClose }: { show: boolean; onClose: () =>
             <div className="text-sm space-y-1">
               <p className="font-bold text-lg text-columbia-navy">Param Sampat</p>
               <p>ps3487@columbia.edu</p>
-              <p>Columbia EMS '28</p>
+              <p>Columbia EMS &apos;28</p>
               <p className="text-gray-600 mt-2">November 2025</p>
             </div>
           </div>
