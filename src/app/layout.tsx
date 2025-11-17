@@ -9,7 +9,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: 'CUEMS Inventory',
+  title: 'CUEMS Inventory Management',
   description: 'CUEMS Inventory Management System',
 };
 

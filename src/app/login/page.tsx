@@ -59,7 +59,7 @@ export default function LoginPage() {
               />
             </div>
             <h1 className="text-4xl font-bold text-columbia-navy mb-2 tracking-tight">
-              CUEMS Inventory
+              CUEMS Inventory Management
             </h1>
             <p className="text-gray-600 text-lg">Welcome back</p>
           </div>
