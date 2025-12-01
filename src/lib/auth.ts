@@ -18,8 +18,8 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Email and password required');
         }
 
-        if (!credentials.email.endsWith('@columbia.edu')) {
-          throw new Error('Must use Columbia email');
+        if (!credentials.email.endsWith('@columbia.edu') && !credentials.email.endsWith('@barnard.edu')) {
+          throw new Error('Must use Columbia or Barnard email');
         }
 
         const user = await prisma.user.findUnique({

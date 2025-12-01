@@ -373,7 +373,7 @@ export default function AdminPage() {
                 <Input
                   id="userEmail"
                   type="email"
-                  placeholder="user@columbia.edu"
+                  placeholder="user@columbia.edu or @barnard.edu"
                   value={newUserEmail}
                   onChange={(e) => setNewUserEmail(e.target.value)}
                   className="mt-1 h-12 border-2"
