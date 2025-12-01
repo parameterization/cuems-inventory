@@ -17,17 +17,31 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    const initialQuantity = data.quantity || 0;
+
     const item = await prisma.inventoryItem.create({
       data: {
         name: data.name,
         cabinet: data.cabinet,
         shelf: data.shelf,
         unit: data.unit,
-        quantity: data.quantity || 0,
+        quantity: initialQuantity,
         minimalBalance: data.minimalBalance || 1,
         itemNumber: data.itemNumber || null,
         vendor: data.vendor || null,
         notes: data.notes || null,
+      },
+    });
+
+    // Log item creation
+    await prisma.auditLog.create({
+      data: {
+        userId: session.user.id,
+        itemId: item.id,
+        itemName: item.name,
+        action: 'CREATED',
+        before: 0,
+        after: initialQuantity,
       },
     });
 

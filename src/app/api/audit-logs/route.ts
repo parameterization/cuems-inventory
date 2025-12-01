@@ -13,7 +13,16 @@ export async function GET() {
     }
 
     const logs = await prisma.auditLog.findMany({
-      include: {
+      select: {
+        id: true,
+        userId: true,
+        itemId: true,
+        itemName: true,
+        action: true,
+        before: true,
+        after: true,
+        timestamp: true,
+        batchId: true,
         user: {
           select: {
             email: true,

@@ -14,6 +14,27 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
+    // Get item details before deletion for audit log
+    const item = await prisma.inventoryItem.findUnique({
+      where: { id: params.id },
+    });
+
+    if (!item) {
+      return NextResponse.json({ error: 'Item not found' }, { status: 404 });
+    }
+
+    // Log deletion before deleting the item
+    await prisma.auditLog.create({
+      data: {
+        userId: session.user.id,
+        itemId: null, // Will be null since item is being deleted
+        itemName: item.name,
+        action: 'DELETED',
+        before: item.quantity,
+        after: 0,
+      },
+    });
+
     await prisma.inventoryItem.delete({
       where: { id: params.id },
     });

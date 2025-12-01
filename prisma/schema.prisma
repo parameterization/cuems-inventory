@@ -64,15 +64,16 @@ model InventoryItem {
 }
 
 model AuditLog {
-  id          String        @id @default(cuid())
+  id          String         @id @default(cuid())
   userId      String
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  itemId      String
-  item        InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId      String?
+  item        InventoryItem? @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  itemName    String?        // Stored so we know what item it was even after deletion
   action      String
-  before      Decimal       @db.Decimal(10, 2)
-  after       Decimal       @db.Decimal(10, 2)
-  timestamp   DateTime      @default(now())
+  before      Decimal        @db.Decimal(10, 2)
+  after       Decimal        @db.Decimal(10, 2)
+  timestamp   DateTime       @default(now())
   batchId     String?
 
   @@index([userId])

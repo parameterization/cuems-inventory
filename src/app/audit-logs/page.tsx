@@ -11,13 +11,19 @@ import { Search, Download } from 'lucide-react';
 interface AuditLog {
   id: string;
   user: { email: string };
-  item: { name: string };
+  item: { name: string } | null;
+  itemName: string | null;
   action: string;
   before: number;
   after: number;
   timestamp: string;
   batchId?: string | null;
 }
+
+// Helper to get item name (handles deleted items)
+const getItemName = (log: AuditLog): string => {
+  return log.item?.name || log.itemName || 'Unknown Item';
+};
 
 interface InventoryCheckBatch {
   batchId: string;
@@ -57,7 +63,7 @@ export default function AuditLogsPage() {
 
     if (searchQuery) {
       filtered = filtered.filter(log => 
-        log.item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        getItemName(log).toLowerCase().includes(searchQuery.toLowerCase()) ||
         log.user.email.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
@@ -90,7 +96,7 @@ export default function AuditLogsPage() {
           const aChanged = a.before !== a.after ? 0 : 1;
           const bChanged = b.before !== b.after ? 0 : 1;
           if (aChanged !== bChanged) return aChanged - bChanged;
-          return a.item.name.localeCompare(b.item.name);
+          return getItemName(a).localeCompare(getItemName(b));
         }),
         changedCount: changedItems.length,
       };
@@ -164,7 +170,7 @@ export default function AuditLogsPage() {
       new Date(log.timestamp).toLocaleString(),
       log.user.email,
       log.action,
-      log.item.name,
+      getItemName(log),
       log.before,
       log.after,
       (log.after - log.before).toString(),
@@ -230,7 +236,7 @@ export default function AuditLogsPage() {
 
           {/* Action Filter Buttons */}
           <div className="flex flex-wrap gap-2">
-            {['ALL', 'TAKE', 'RETURN', 'SET'].map((action) => (
+            {['ALL', 'TAKE', 'RETURN', 'SET', 'CREATED', 'DELETED'].map((action) => (
               <button
                 key={action}
                 onClick={() => setActionFilter(action)}
@@ -350,7 +356,7 @@ export default function AuditLogsPage() {
                                 }`}
                               >
                                 <td className="px-6 py-3 text-sm font-medium text-gray-900">
-                                  {log.item.name}
+                                  {getItemName(log)}
                                   {log.before !== log.after && (
                                     <span className="ml-2 text-xs font-bold text-yellow-700 bg-yellow-200 px-2 py-1 uppercase">Changed</span>
                                   )}
@@ -387,12 +393,12 @@ export default function AuditLogsPage() {
                 </div>
               ))}
 
-              {/* Individual TAKE/RETURN Actions */}
+              {/* Individual Actions (TAKE/RETURN/CREATED/DELETED) */}
               {filteredLogs.filter(log => log.action !== 'SET' || !log.batchId).length > 0 && (
                 <div className="glass-effect overflow-hidden">
                   <div className="bg-gray-100 px-6 py-4 border-b-2 border-gray-300">
                     <h3 className="font-bold text-lg text-gray-700 uppercase tracking-wide">
-                      Individual Take/Return Actions
+                      Individual Actions
                     </h3>
                   </div>
                   <div className="overflow-x-auto">
@@ -448,14 +454,23 @@ export default function AuditLogsPage() {
                                   className={`inline-block px-3 py-1 text-xs font-bold uppercase tracking-wide ${
                                     log.action === 'TAKE'
                                       ? 'bg-red-600 text-white'
-                                      : 'bg-blue-600 text-white'
+                                      : log.action === 'RETURN'
+                                      ? 'bg-blue-600 text-white'
+                                      : log.action === 'CREATED'
+                                      ? 'bg-green-600 text-white'
+                                      : log.action === 'DELETED'
+                                      ? 'bg-gray-700 text-white'
+                                      : 'bg-purple-600 text-white'
                                   }`}
                                 >
                                   {log.action}
                                 </span>
                               </td>
                               <td className="px-6 py-3 text-sm font-medium text-gray-900">
-                                {log.item.name}
+                                {getItemName(log)}
+                                {log.action === 'DELETED' && (
+                                  <span className="ml-2 text-xs font-bold text-gray-500 bg-gray-200 px-2 py-1 uppercase">Deleted</span>
+                                )}
                               </td>
                               <td className="px-6 py-3 text-center text-sm font-semibold text-gray-700">
                                 {log.before}
