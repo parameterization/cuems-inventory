@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { HamburgerMenu } from '@/components/HamburgerMenu';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { getPusherClient } from '@/lib/pusher';
@@ -81,11 +82,7 @@ export default function InventoryLevelsPage() {
   const outOfStockCount = items.filter(i => Number(i.quantity) === 0).length;
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl text-columbia-navy">Loading...</div>
-      </div>
-    );
+    return <LoadingSpinner message="Loading inventory" />;
   }
 
   return (

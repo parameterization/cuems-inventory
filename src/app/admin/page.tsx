@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { HamburgerMenu } from '@/components/HamburgerMenu';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -305,11 +306,7 @@ export default function AdminPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl text-columbia-navy">Loading...</div>
-      </div>
-    );
+    return <LoadingSpinner message="Loading admin panel" />;
   }
 
   return (

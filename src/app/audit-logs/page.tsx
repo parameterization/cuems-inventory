@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { HamburgerMenu } from '@/components/HamburgerMenu';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Download } from 'lucide-react';
@@ -192,11 +193,7 @@ export default function AuditLogsPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl text-columbia-navy">Loading...</div>
-      </div>
-    );
+    return <LoadingSpinner message="Loading audit logs" />;
   }
 
   return (

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { HamburgerMenu } from '@/components/HamburgerMenu';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Minus, Plus, Search } from 'lucide-react';
@@ -132,11 +133,7 @@ export default function TakeRemovePage() {
   }, {} as Record<string, Record<string, InventoryItem[]>>);
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl text-columbia-navy">Loading inventory...</div>
-      </div>
-    );
+    return <LoadingSpinner message="Loading inventory" />;
   }
 
   return (
